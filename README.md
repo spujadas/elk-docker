@@ -10,7 +10,7 @@ To pull this image from the Docker registry, where it has been built automatical
 
 	$ docker pull sebp/elk
 
-**Note** – To build this image from the source files, clone the [Git repository](https://github.com/spujadas/elk) and run `sudo docker build -t <repository-name> .` from the root directory (i.e. the directory that contains `Dockerfile`).  
+**Note** – To build this image from the source files, clone the [Git repository](https://github.com/spujadas/elk-docker) and run `sudo docker build -t <repository-name> .` from the root directory (i.e. the directory that contains `Dockerfile`).  
 
 ## Usage
 
