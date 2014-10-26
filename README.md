@@ -10,7 +10,7 @@ To pull this image from the Docker registry, where it has been built automatical
 
 	$ docker pull sebp/elk
 
-**Note** – To build this image from the source files, clone the Git repository and run `sudo docker build -t <repository-name> .` from the root directory (i.e. the directory that contains `Dockerfile`).  
+**Note** – To build this image from the source files, clone the [Git repository](https://github.com/spujadas/elk) and run `sudo docker build -t <repository-name> .` from the root directory (i.e. the directory that contains `Dockerfile`).  
 
 ## Usage
 
@@ -20,21 +20,20 @@ Run the container from the image with the following command:
 
 This command publishes the following ports, which are needed for proper operation of the ELK stack: 5601 (Kibana web interface), 9200 (Elasticsearch), and 5000 (Logstash server, receives logs from logstash forwarders – see next section). The figure below shows how the pieces fit together.
 
-	                                           +--------------------------------------------+
-	                                           |                  ELK server (Docker image) |
-	+----------------------+                   |                                            |
-	|                      |       +------------> port 5601 - Kibana web interface          |
-	|  Admin workstation   +-------+           |                                            |
-	|                      |       +------------> port 9200 - Elasticsearch JSON interface  |
-	+----------------------+                   |                                            |
-	                                           |                                            |
-	+----------------------+                   |                                            |
-	| Server               |                   |                                            |
-	| +------------------+ |                   |                                            |
-	| |logstash forwarder+----------------------> port 5000 - Logstash server               |
-	| +------------------+ |                   |                                            |
-	+----------------------+                   +--------------------------------------------+
-
+	                                 +--------------------------------------------+
+	                                 |                  ELK server (Docker image) |
+	+----------------------+         |                                            |
+	|                      |    +-----> port 5601 - Kibana web interface          |
+	|  Admin workstation   +----+    |                                            |
+	|                      |    +-----> port 9200 - Elasticsearch JSON interface  |
+	+----------------------+         |                                            |
+	                                 |                                            |
+	+----------------------+         |                                            |
+	| Server               |         |                                            |
+	| +------------------+ |         |                                            |
+	| |logstash forwarder+------------> port 5000 - Logstash server               |
+	| +------------------+ |         |                                            |
+	+----------------------+         +--------------------------------------------+
 
 Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a native version of Docker, or the IP address of the virtual machine if running a wrapped version of Docker (see note).
 
