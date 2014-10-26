@@ -114,4 +114,4 @@ To harden this image, at the very least you would want to:
 - [How To Use Logstash and Kibana To Centralize Logs On CentOS 7](https://www.digitalocean.com/community/tutorials/how-to-use-logstash-and-kibana-to-centralize-logs-on-centos-7)
 - [Elasticsearch, Fluentd, and Kibana: Open Source Log Search and Visualization](https://www.digitalocean.com/community/tutorials/elasticsearch-fluentd-and-kibana-open-source-log-search-and-visualization)
 - [The Docker Book](http://www.dockerbook.com/)
-- [The Logstash Book](www.logstashbook.com)
+- [The Logstash Book](http://www.logstashbook.com/)
