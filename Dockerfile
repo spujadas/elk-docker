@@ -1,13 +1,13 @@
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas <sebastien@my_surname.net>
-ENV REFRESHED_AT 2014-10-25
+ENV REFRESHED_AT 2015-02-16
 
 ### install elasticsearch, logstash and nginx (for kibana)
 
 RUN apt-get update -qq && apt-get install -qqy curl
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
-RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.3/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
+RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
 
 RUN curl http://nginx.org/keys/nginx_signing.key | apt-key add -
 RUN echo deb http://nginx.org/packages/ubuntu/ trusty nginx > /etc/apt/sources.list.d/nginx.list
@@ -20,9 +20,9 @@ RUN apt-get update -qq && apt-get install -qqy openjdk-7-jdk elasticsearch logst
 ### install kibana
 
 RUN mkdir /opt/kibana \
-	&& curl -O https://download.elasticsearch.org/kibana/kibana/kibana-3.1.1.tar.gz \
-	&& tar xvf kibana-3.1.1.tar.gz -C /opt/kibana --strip-components=1 \
-	&& rm -f kibana-3.1.1.tar.gz
+	&& curl -O https://download.elasticsearch.org/kibana/kibana/kibana-3.1.2.tar.gz \
+	&& tar xvf kibana-3.1.2.tar.gz -C /opt/kibana --strip-components=1 \
+	&& rm -f kibana-3.1.2.tar.gz
 
 
 ### configure and start elasticsearch
@@ -45,7 +45,7 @@ ADD ./30-lumberjack-output.conf /etc/logstash/conf.d/30-lumberjack-output.conf
 
 # patterns
 ADD ./nginx.pattern /opt/logstash/patterns/nginx
-RUN chown logstash:logstash /opt/logstash/patterns/nginx
+RUN chown logstash:logstash /opt/logstash/patterns/*
 
 ### configure kibana
 
