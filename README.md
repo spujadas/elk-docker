@@ -1,16 +1,16 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/), [Logstash](http://logstash.net/), and [Kibana](http://www.elasticsearch.org/overview/kibana/), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.4.3), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 3.1.2), collectively known as ELK.
  
 ## Installation
 
 Install [Docker](https://docker.com/), either using a native package (Linux) or wrapped in a virtual machine (Windows, Mac OS X – e.g. using [Boot2Docker](http://boot2docker.io/) or [Vagrant](https://www.vagrantup.com/)).
 
-To pull this image from the Docker registry, where it has been built automatically from the source files in this Git repository:
+To pull this image from the Docker registry, where it has been built automatically from the source files in the source Git repository, open a shell prompt and enter (`sudo`-ing as required):
 
 	$ docker pull sebp/elk
 
-**Note** – To build this image from the source files, clone the [Git repository](https://github.com/spujadas/elk-docker) and run `sudo docker build -t <repository-name> .` from the root directory (i.e. the directory that contains `Dockerfile`).  
+**Note** – To build the Docker image from the source files, clone the [Git repository](https://github.com/spujadas/elk-docker) and run `sudo docker build -t <repository-name> .` from the root directory (i.e. the directory that contains `Dockerfile`).
 
 ## Usage
 
@@ -35,11 +35,26 @@ This command publishes the following ports, which are needed for proper operatio
 	| +------------------+ |         |                                            |
 	+----------------------+         +--------------------------------------------+
 
-Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a native version of Docker, or the IP address of the virtual machine if running a wrapped version of Docker (see note).
+Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a native version of Docker, or the IP address of the virtual machine if running a VM-hosted version of Docker (see note).
 
-**Note** – To configure and/or find out the IP address of a VM-hosted Docker installation, see [https://docs.docker.com/installation/windows/](https://docs.docker.com/installation/windows/) (Windows) and [https://docs.docker.com/installation/mac/](https://docs.docker.com/installation/mac/) (Mac OS X) for guidance if using Boot2Docker. If you're using Vagrant, you'll need to set up port forwarding (see [https://docs.vagrantup.com/v2/networking/forwarded_ports.html](https://docs.vagrantup.com/v2/networking/forwarded_ports.html).
+**Note** – To configure and/or find out the IP address of a VM-hosted Docker installation, see [https://docs.docker.com/installation/windows/](https://docs.docker.com/installation/windows/) (Windows) and [https://docs.docker.com/installation/mac/](https://docs.docker.com/installation/mac/) (Mac OS X) for guidance if using Boot2Docker. If you're using [Vagrant](https://www.vagrantup.com/), you'll need to set up port forwarding (see [https://docs.vagrantup.com/v2/networking/forwarded_ports.html](https://docs.vagrantup.com/v2/networking/forwarded_ports.html).
 
 Click the home icon to view the dashboard. The dashboard will remain empty until some logs have actually been forwarded to Logstash (see next section).
+
+### Running the image using Docker Compose or Fig
+
+If you're using [Docker Compose](http://fig.sh) (formerly known as fig) to manage your Docker services (and if not you really should as it will make your life much easier!), then you can create an entry for the ELK Docker image by adding the following lines to your `docker-compose.yml` file (or `fig.yml` if using Fig):
+
+	elk:
+	  image: sebp/elk
+	  ports:
+	    - "5601:5601"
+	    - "9200:9200"
+	    - "5000:5000"
+
+You can then start the ELK container like this:
+
+	$ docker-compose up elk 
 
 ## Forwarding logs
 
