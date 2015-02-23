@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.4.3), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 3.1.2), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.4.4), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.0), collectively known as ELK.
  
 ## Installation
 
@@ -18,7 +18,13 @@ Run the container from the image with the following command:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk
 
-This command publishes the following ports, which are needed for proper operation of the ELK stack: 5601 (Kibana web interface), 9200 (Elasticsearch), and 5000 (Logstash server, receives logs from logstash forwarders – see next section). The figure below shows how the pieces fit together.
+This command publishes the following ports, which are needed for proper operation of the ELK stack:
+
+- 5601 (Kibana web interface).
+- 9200 (Elasticsearch)
+- 5000 (Logstash server, receives logs from logstash forwarders – see next section).
+ 
+The figure below shows how the pieces fit together.
 
 	                                 +--------------------------------------------+
 	                                 |                  ELK server (Docker image) |
@@ -39,11 +45,9 @@ Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<
 
 **Note** – To configure and/or find out the IP address of a VM-hosted Docker installation, see [https://docs.docker.com/installation/windows/](https://docs.docker.com/installation/windows/) (Windows) and [https://docs.docker.com/installation/mac/](https://docs.docker.com/installation/mac/) (Mac OS X) for guidance if using Boot2Docker. If you're using [Vagrant](https://www.vagrantup.com/), you'll need to set up port forwarding (see [https://docs.vagrantup.com/v2/networking/forwarded_ports.html](https://docs.vagrantup.com/v2/networking/forwarded_ports.html).
 
-Click the home icon to view the dashboard. The dashboard will remain empty until some logs have actually been forwarded to Logstash (see next section).
-
 ### Running the image using Docker Compose or Fig
 
-If you're using [Docker Compose](http://fig.sh) (formerly known as fig) to manage your Docker services (and if not you really should as it will make your life much easier!), then you can create an entry for the ELK Docker image by adding the following lines to your `docker-compose.yml` file (or `fig.yml` if using Fig):
+If you're using [Docker Compose](http://fig.sh) (formerly known as Fig) to manage your Docker services (and if not you really should as it will make your life much easier!), then you can create an entry for the ELK Docker image by adding the following lines to your `docker-compose.yml` file (or `fig.yml` if using Fig):
 
 	elk:
 	  image: sebp/elk
@@ -55,6 +59,49 @@ If you're using [Docker Compose](http://fig.sh) (formerly known as fig) to manag
 You can then start the ELK container like this:
 
 	$ docker-compose up elk 
+
+### Creating a dummy log entry
+
+As from Kibana version 4.0.0, you won't be able to see anything (not even an empty dashboard) until something has been logged (see next section on how to forward logs).
+
+If you haven't got any logs yet and want to manually create a dummy log entry for test purposes (for instance to see the dashboard), first run the container interactively by appending `/bin/bash` (or just `bash`) to the previous command line:
+
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk /bin/bash
+
+**Note** - If you're using Docker Compose (or Fig), then enter `sudo docker-compose run --service-ports elk /bin/bash` instead.
+
+Then start Elasticsearch, Logstash and Kibana by issuing the following command:
+
+	# start.sh&
+
+Once everything is up and running (wait for `{"@timestamp":…,"message":"Listening on 0.0.0.0:5601",…}`), type:
+
+	/opt/logstash/bin/logstash -e 'input { stdin { } } output { elasticsearch { host => localhost } }'
+
+And then type some dummy text followed by Enter to create a log entry:
+
+	this is a dummy entry
+
+**Note** - You can create as many entries as you want. Use `^C` to go back to the bash prompt.
+
+After a few seconds if you browse to [http://localhost:9200/_search?pretty](http://localhost:9200/_search?pretty) you'll see that Elasticsearch has indexed the entry:
+
+	{
+	  …
+	  "hits" : {
+	    …
+	    "hits" : [ {
+	      "_index" : "logstash-…",
+	      "_type" : "logs",
+		  …
+	      "_source":{"message":"this is a dummy entry","@version":"1","@timestamp":…}
+	    } ]
+	  }
+	}
+
+You can now browse to Kibana's web interface at [http://localhost:5601](http://localhost:5601).
+
+From the drop-down "Time-field name" field, select `@timestamp`, then click on "Create", and you're good to go. 
 
 ## Forwarding logs
 
