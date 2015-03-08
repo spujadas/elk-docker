@@ -21,9 +21,9 @@ RUN apt-get update -qq && apt-get install -qqy openjdk-7-jdk elasticsearch logst
 ### install kibana
 
 RUN mkdir /opt/kibana \
-	&& curl -O https://download.elasticsearch.org/kibana/kibana/kibana-4.0.0-linux-x64.tar.gz \
-	&& tar xzf kibana-4.0.0-linux-x64.tar.gz -C /opt/kibana --strip-components=1 \
-	&& rm -f kibana-4.0.0-linux-x64.tar.gz
+	&& curl -O https://download.elasticsearch.org/kibana/kibana/kibana-4.0.1-linux-x64.tar.gz \
+	&& tar xzf kibana-4.0.1-linux-x64.tar.gz -C /opt/kibana --strip-components=1 \
+	&& rm -f kibana-4.0.1-linux-x64.tar.gz
 
 
 ###############################################################################
