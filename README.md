@@ -1,18 +1,34 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.4.4), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.1), collectively known as ELK.
- 
-## Installation
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.0), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.1), collectively known as ELK.
+
+### Contents ###
+
+- [Installation](#installation)
+- [Usage](#usage)
+	- [Running the image using Docker Compose](#running-with-docker-compose)
+	- [Creating a dummy log entry](#creating-dummy-log-entry)
+- [Forwarding logs](#forwarding-logs)
+	- [Linking a Docker container to the ELK container](#linking-containers)
+- [Building the image](#building-image)
+- [Extending the image](#extending-image)
+- [Security considerations](#security-considerations)
+- [References](#references)
+- [About](#about)
+
+## Installation <a name="installation"></a>
 
 Install [Docker](https://docker.com/), either using a native package (Linux) or wrapped in a virtual machine (Windows, Mac OS X – e.g. using [Boot2Docker](http://boot2docker.io/) or [Vagrant](https://www.vagrantup.com/)).
 
-To pull this image from the Docker registry, where it has been built automatically from the source files in the source Git repository, open a shell prompt and enter:
+To pull this image from the Docker registry, open a shell prompt and enter:
 
 	$ sudo docker pull sebp/elk
 
-**Note** – If you want to build the image yourself, see the *Building the image* section below.
+**Note** – This image has been built automatically from the source files in the source Git repository. If you want to build the image yourself, see the [Building the image](#building-image) section below.
 
-## Usage
+**Note** – The size of the virtual image (as reported by `docker images`) is 925.4 MB.
+
+## Usage <a name="usage"></a>
 
 Run the container from the image with the following command:
 
@@ -22,7 +38,7 @@ This command publishes the following ports, which are needed for proper operatio
 
 - 5601 (Kibana web interface).
 - 9200 (Elasticsearch)
-- 5000 (Logstash server, receives logs from logstash forwarders – see next section).
+- 5000 (Logstash server, receives logs from logstash forwarders – see the [Forwarding logs](#forwarding-logs) section below).
  
 The figure below shows how the pieces fit together.
 
@@ -45,9 +61,11 @@ Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<
 
 **Note** – To configure and/or find out the IP address of a VM-hosted Docker installation, see [https://docs.docker.com/installation/windows/](https://docs.docker.com/installation/windows/) (Windows) and [https://docs.docker.com/installation/mac/](https://docs.docker.com/installation/mac/) (Mac OS X) for guidance if using Boot2Docker. If you're using [Vagrant](https://www.vagrantup.com/), you'll need to set up port forwarding (see [https://docs.vagrantup.com/v2/networking/forwarded_ports.html](https://docs.vagrantup.com/v2/networking/forwarded_ports.html).
 
-### Running the image using Docker Compose or Fig
+As from Kibana version 4.0.0, you won't be able to see anything (not even an empty dashboard) until something has been logged (see the [Creating a dummy log entry](#creating-dummy-log-entry) sub-section below on how to test your set-up, and the [Forwarding logs](#forwarding-logs) section on how to forward logs from regular applications).
 
-If you're using [Docker Compose](http://fig.sh) (formerly known as Fig) to manage your Docker services (and if not you really should as it will make your life much easier!), then you can create an entry for the ELK Docker image by adding the following lines to your `docker-compose.yml` file (or `fig.yml` if using Fig):
+### Running the image using Docker Compose <a name="running-with-docker-compose"></a>
+
+If you're using [Docker Compose](https://docs.docker.com/compose/) (formerly known as [Fig](http://fig.sh)) to manage your Docker services (and if not you really should as it will make your life much easier!), then you can create an entry for the ELK Docker image by adding the following lines to your `docker-compose.yml` file:
 
 	elk:
 	  image: sebp/elk
@@ -60,13 +78,7 @@ You can then start the ELK container like this:
 
 	$ sudo docker-compose up elk 
 
-or (with Fig):
-
-	$ sudo fig up elk 
-
-As from Kibana version 4.0.0, you won't be able to see anything (not even an empty dashboard) until something has been logged (see the next sub-section on how to test your set-up by creating a dummy log entry, and the next section on how to forward logs from regular applications).
-
-### Creating a dummy log entry
+### Creating a dummy log entry <a name="creating-dummy-log-entry"></a>
 
 If you haven't got any logs yet and want to manually create a dummy log entry for test purposes (for instance to see the dashboard), first start the container as usual (`sudo docker run ...` or `docker-compose up ...`).
 
@@ -85,9 +97,9 @@ Open a shell prompt in the container and type (replacing `<container-name>` with
 - Run the container interactively:
 
 	- With the regular `docker` command use `sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk /bin/bash` – note the extra `/bin/bash` at the end compared to the usual command line
-	- With Docker Compose or Fig use `sudo docker-compose run --service-ports elk /bin/bash` (substituting `fig` for `docker-compose` if you're using Fig).
+	- With Compose use `sudo docker-compose run --service-ports elk /bin/bash`.
 
-- At the container's shell prompt, type to `start.sh&` to start Elasticsearch, Logstash and Kibana in the background, and wait for everything to be up and running (wait for `{"@timestamp":…,"message":"Listening on 0.0.0.0:5601",…}`)
+- At the container's shell prompt, type `start.sh&` to start Elasticsearch, Logstash and Kibana in the background, and wait for everything to be up and running (wait for `{"@timestamp":... ,"message":"Listening on 0.0.0.0:5601",...}`)
 
 Now enter:
 
@@ -102,14 +114,14 @@ And then type some dummy text followed by Enter to create a log entry:
 After a few seconds if you browse to *http://<your-host>:9200/_search?pretty* (e.g. [http://localhost:9200/_search?pretty](http://localhost:9200/_search?pretty) for a local native instance of Docker) you'll see that Elasticsearch has indexed the entry:
 
 	{
-	  …
+	  ...
 	  "hits" : {
-	    …
+	    ...
 	    "hits" : [ {
-	      "_index" : "logstash-…",
+	      "_index" : "logstash-...",
 	      "_type" : "logs",
-		  …
-	      "_source":{"message":"this is a dummy entry","@version":"1","@timestamp":…}
+		  ...
+	      "_source":{"message":"this is a dummy entry","@version":"1","@timestamp":...}
 	    } ]
 	  }
 	}
@@ -118,11 +130,11 @@ You can now browse to Kibana's web interface at *http://<your-host>:5601* (e.g. 
 
 From the drop-down "Time-field name" field, select `@timestamp`, then click on "Create", and you're good to go. 
 
-## Forwarding logs
+## Forwarding logs <a name="forwarding-logs"></a>
 
 Forwarding logs from a host relies on a Logstash forwarder agent collecting logs (e.g. from log files, from the syslog daemon) and sending them to our instance of Logstash.
 
-Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the References section below for links to detailed instructions).
+Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the [References](#References) section below for links to detailed instructions).
 
 Here is a sample configuration file for Logstash forwarder, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs. 
 
@@ -161,7 +173,7 @@ In the sample configuration file, make sure that you:
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.  
 
-### Linking a Docker container to the ELK container 
+### Linking a Docker container to the ELK container <a name="linking-containers"></a>
 
 If you want to forward logs from a local Docker container to the ELK container, then you need to link the two containers.
 
@@ -175,7 +187,7 @@ Then start the log-emitting container with the `--link` option:
 
 From the perspective of the log emitting container, the ELK container is now known as `elk`, which is the hostname to be used in the `logstash-forwarder` configuration file.
 
-With Docker Compose (or Fig) here's what example entries for a (locally built log-generating) nginx container and an ELK container could look like in the `docker-compose.yml` (or `fig.yml`) file. 
+With Compose here's what example entries for a (locally built log-generating) nginx container and an ELK container might look like in the `docker-compose.yml` file. 
 
 	nginx:
 	  build: nginx
@@ -192,17 +204,16 @@ With Docker Compose (or Fig) here's what example entries for a (locally built lo
 	    - "5000:5000"
   
 
-## Building the image
+## Building the image <a name="building-image"></a>
 
 To build the Docker image from the source files, first clone the [Git repository](https://github.com/spujadas/elk-docker), go to the root of the cloned directory (i.e. the directory that contains `Dockerfile`), and:
 
 - If you're using the vanilla `docker` command then run `sudo docker build . -t <repository-name>`, where `<repository-name>` is the repository name to be applied to the image, which you can then use to run the image with the `docker run` command.
 
-- If you're using Docker Compose then run `sudo docker-compose build elk`, which uses the `docker-compose.yml` file to build the image. You can then run the built image with `sudo docker-compose up`.
- 
-- If you're using Fig, then rename `docker-compose.yml` to `fig.yml` and run `sudo fig build elk`. Start the resulting image with `sudo fig up`.
+- If you're using Compose then run `sudo docker-compose build elk`, which uses the `docker-compose.yml` file from the source repository to build the image. You can then run the built image with `sudo docker-compose up`.
 
-## Extending the image
+
+## Extending the image <a name="extending-image"></a>
 
 To extend the image, you can either fork the source Git repository and hack away, or – more in the spirit of the Docker philosophy – use the image as a base image and build on it, adding files (e.g. configuration files to process logs sent by log-producing applications) and overwriting files (e.g. configuration files, certificate and private key files) as required.
 
@@ -212,7 +223,7 @@ To create a new image based on this base image, you want your `Dockerfile` to in
 
 followed by instructions to extend the image (see Docker's [Dockerfile Reference page](https://docs.docker.com/reference/builder/) for more information).
 
-## Security considerations
+## Security considerations <a name="security-considerations"></a>
 
 As it stands this image is meant for local test use, and as such hasn't been secured: access to the ELK services is not restricted, and a default authentication server certificate (`logstash-forwarder.crt`) and private key (`logstash-forwarder.key`) are bundled with the image.
 
@@ -222,9 +233,13 @@ To harden this image, at the very least you would want to:
 - Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html).
 - Generate a new self-signed authentication certificate for the Logstash server (`cd /etc/pki/tls; sudo openssl req -x509 -batch -nodes -days 3650 -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt` for a 10-year certificate) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
 
-## References
+## References <a name="references"></a>
 
 - [How To Use Logstash and Kibana To Centralize Logs On CentOS 7](https://www.digitalocean.com/community/tutorials/how-to-use-logstash-and-kibana-to-centralize-logs-on-centos-7)
 - [Elasticsearch, Fluentd, and Kibana: Open Source Log Search and Visualization](https://www.digitalocean.com/community/tutorials/elasticsearch-fluentd-and-kibana-open-source-log-search-and-visualization)
 - [The Docker Book](http://www.dockerbook.com/)
 - [The Logstash Book](http://www.logstashbook.com/)
+
+## About <a name="about"></a>
+
+Written by [Sébastien Pujadas](http://pujadas.net), released under the [Apache 2 license](http://www.apache.org/licenses/LICENSE-2.0).
