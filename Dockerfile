@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 1.5.0, Logstash 1.4.2, Kibana 4.0.1
+# Elasticsearch 1.5.0, Logstash 1.4.2, Kibana 4.0.2
 
 # Build with:
 # docker build . -t <repo-user>/elk
@@ -8,8 +8,8 @@
 # docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk <repo-user>/elk
 
 FROM phusion/baseimage
-MAINTAINER Sebastien Pujadas <sebastien@my_surname.net>
-ENV REFRESHED_AT 2015-02-22
+MAINTAINER Sebastien Pujadas http://pujadas.net
+ENV REFRESHED_AT 2015-04-05
 
 ###############################################################################
 #                                INSTALLATION
@@ -17,7 +17,8 @@ ENV REFRESHED_AT 2015-02-22
 
 ### install elasticsearch and logstash
 
-RUN apt-get update -qq && apt-get install -qqy curl
+RUN apt-get update -qq \
+ && apt-get install -qqy curl
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.5/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
@@ -36,9 +37,9 @@ RUN apt-get update -qq \
 ENV KIBANA_HOME /opt/kibana
 
 RUN mkdir ${KIBANA_HOME} \
-	&& curl -O https://download.elasticsearch.org/kibana/kibana/kibana-4.0.1-linux-x64.tar.gz \
-	&& tar xzf kibana-4.0.1-linux-x64.tar.gz -C ${KIBANA_HOME} --strip-components=1 \
-	&& rm -f kibana-4.0.1-linux-x64.tar.gz
+ && curl -O https://download.elasticsearch.org/kibana/kibana/kibana-4.0.2-linux-x64.tar.gz \
+ && tar xzf kibana-4.0.2-linux-x64.tar.gz -C ${KIBANA_HOME} --strip-components=1 \
+ && rm -f kibana-4.0.2-linux-x64.tar.gz
 
 
 ###############################################################################

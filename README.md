@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.0), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.1), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.0), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.2), collectively known as ELK.
 
 ### Contents ###
 
@@ -12,6 +12,7 @@ This Docker image provides a convenient centralised log server and log managemen
 	- [Linking a Docker container to the ELK container](#linking-containers)
 - [Building the image](#building-image)
 - [Extending the image](#extending-image)
+- [Making log data persistent](#persistent-log-data)
 - [Security considerations](#security-considerations)
 - [References](#references)
 - [About](#about)
@@ -26,7 +27,7 @@ To pull this image from the Docker registry, open a shell prompt and enter:
 
 **Note** – This image has been built automatically from the source files in the source Git repository. If you want to build the image yourself, see the [Building the image](#building-image) section below.
 
-**Note** – The size of the virtual image (as reported by `docker images`) is 925.4 MB.
+**Note** – The size of the virtual image (as reported by `docker images`) is 926.6 MB.
 
 ## Usage <a name="usage"></a>
 
@@ -61,6 +62,8 @@ Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<
 
 **Note** – To configure and/or find out the IP address of a VM-hosted Docker installation, see [https://docs.docker.com/installation/windows/](https://docs.docker.com/installation/windows/) (Windows) and [https://docs.docker.com/installation/mac/](https://docs.docker.com/installation/mac/) (Mac OS X) for guidance if using Boot2Docker. If you're using [Vagrant](https://www.vagrantup.com/), you'll need to set up port forwarding (see [https://docs.vagrantup.com/v2/networking/forwarded_ports.html](https://docs.vagrantup.com/v2/networking/forwarded_ports.html).
 
+You can stop the container with `^C`, and start it again with `sudo docker start elk`.
+
 As from Kibana version 4.0.0, you won't be able to see anything (not even an empty dashboard) until something has been logged (see the [Creating a dummy log entry](#creating-dummy-log-entry) sub-section below on how to test your set-up, and the [Forwarding logs](#forwarding-logs) section on how to forward logs from regular applications).
 
 ### Running the image using Docker Compose <a name="running-with-docker-compose"></a>
@@ -77,6 +80,8 @@ If you're using [Docker Compose](https://docs.docker.com/compose/) (formerly kno
 You can then start the ELK container like this:
 
 	$ sudo docker-compose up elk 
+
+**Note** 
 
 ### Creating a dummy log entry <a name="creating-dummy-log-entry"></a>
 
@@ -215,13 +220,36 @@ To build the Docker image from the source files, first clone the [Git repository
 
 ## Extending the image <a name="extending-image"></a>
 
-To extend the image, you can either fork the source Git repository and hack away, or – more in the spirit of the Docker philosophy – use the image as a base image and build on it, adding files (e.g. configuration files to process logs sent by log-producing applications) and overwriting files (e.g. configuration files, certificate and private key files) as required.
+To extend the image, you can either fork the source Git repository and hack away, or – more in the spirit of the Docker philosophy – use the image as a base image and build on it, adding files (e.g. configuration files to process logs sent by log-producing applications, plugins for Elasticsearch) and overwriting files (e.g. configuration files, certificate and private key files) as required.
 
 To create a new image based on this base image, you want your `Dockerfile` to include:
 
 	FROM sebp/elk
 
 followed by instructions to extend the image (see Docker's [Dockerfile Reference page](https://docs.docker.com/reference/builder/) for more information).
+
+## Making log data persistent <a name="persistent-log-data"></a>
+
+If you want your ELK stack to keep your log data across container restarts, you need to create a Docker data volume inside the ELK container at `/var/lib/elasticsearch`, which is the directory that Elasticsearch stores its data in.
+
+One way to do this with the `docker` command-line tool is to first create a named container called `elk_data` with a bound Docker volume by using the `-v` option:
+
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -5000:5000 -v /var/lib/elasticsearch -it --name elk_data sebp/elk
+
+You can now reuse the persistent volume from that container using the `--volumes-from` option:
+
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 --volumes-from elk_data -it --name elk sebp/elk
+
+Alternatively, if you're using Compose, then simply add the two following lines to your `docker-compose.yml` file, under the `elk:` entry:
+
+	  volumes:
+	    - /var/lib/elasticsearch
+
+Then start the container with `sudo docker-compose up` as usual.
+
+**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). As of this writing, managing Docker volumes can be a bit of a headache, so you might want to have a look at [docker-cleanup-volumes](https://github.com/chadoe/docker-cleanup-volumes), a shell script that deletes unused Docker volumes. 
+
+See Docker's page on [Managing Data in Containers](https://docs.docker.com/userguide/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
 
 ## Security considerations <a name="security-considerations"></a>
 
@@ -230,7 +258,7 @@ As it stands this image is meant for local test use, and as such hasn't been sec
 To harden this image, at the very least you would want to:
 
 - Restrict the access to the ELK services to authorised hosts/networks only, as described in e.g. [Elasticsearch Scripting and Security](http://www.elasticsearch.org/blog/scripting-security/) and [Elastic Security: Deploying Logstash, ElasticSearch, Kibana "securely" on the Internet ](http://blog.eslimasec.com/2014/05/elastic-security-deploying-logstash.html).
-- Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html).
+- Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html)).
 - Generate a new self-signed authentication certificate for the Logstash server (`cd /etc/pki/tls; sudo openssl req -x509 -batch -nodes -days 3650 -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt` for a 10-year certificate) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
 
 ## References <a name="references"></a>
