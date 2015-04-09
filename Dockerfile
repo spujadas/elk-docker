@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 1.5.0, Logstash 1.4.2, Kibana 4.0.2
+# Elasticsearch 1.5.1, Logstash 1.4.2, Kibana 4.0.2
 
 # Build with:
 # docker build . -t <repo-user>/elk
@@ -9,7 +9,7 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2015-04-05
+ENV REFRESHED_AT 2015-04-09
 
 ###############################################################################
 #                                INSTALLATION
@@ -40,6 +40,13 @@ RUN mkdir ${KIBANA_HOME} \
  && curl -O https://download.elasticsearch.org/kibana/kibana/kibana-4.0.2-linux-x64.tar.gz \
  && tar xzf kibana-4.0.2-linux-x64.tar.gz -C ${KIBANA_HOME} --strip-components=1 \
  && rm -f kibana-4.0.2-linux-x64.tar.gz
+
+ADD ./kibana4-init /etc/init.d/kibana4
+RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana4 \
+ && chmod +x /etc/init.d/kibana4 \
+ && groupadd -r kibana \
+ && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -g kibana kibana \
+ && chown -R kibana:kibana ${KIBANA_HOME}
 
 
 ###############################################################################
