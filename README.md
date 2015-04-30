@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.1), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.2), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.2), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.2), collectively known as ELK.
 
 ### Contents ###
 
@@ -27,7 +27,7 @@ To pull this image from the Docker registry, open a shell prompt and enter:
 
 **Note** – This image has been built automatically from the source files in the source Git repository. If you want to build the image yourself, see the [Building the image](#building-image) section below.
 
-**Note** – The size of the virtual image (as reported by `docker images`) is 954.3 MB.
+**Note** – The size of the virtual image (as reported by `docker images`) is 954.4 MB.
 
 ## Usage <a name="usage"></a>
 
@@ -64,7 +64,7 @@ Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<
 
 You can stop the container with `^C`, and start it again with `sudo docker start elk`.
 
-As from Kibana version 4.0.0, you won't be able to see anything (not even an empty dashboard) until something has been logged (see the [Creating a dummy log entry](#creating-dummy-log-entry) sub-section below on how to test your set-up, and the [Forwarding logs](#forwarding-logs) section on how to forward logs from regular applications).
+As from Kibana version 4.0.0, you won't be able to see anything (not even an empty dashboard) until something has been logged (see the *[Creating a dummy log entry](#creating-dummy-log-entry)* sub-section below on how to test your set-up, and the *[Forwarding logs](#forwarding-logs)* section on how to forward logs from regular applications).
 
 ### Running the image using Docker Compose <a name="running-with-docker-compose"></a>
 
@@ -80,8 +80,6 @@ If you're using [Docker Compose](https://docs.docker.com/compose/) (formerly kno
 You can then start the ELK container like this:
 
 	$ sudo docker-compose up elk 
-
-**Note** 
 
 ### Creating a dummy log entry <a name="creating-dummy-log-entry"></a>
 
@@ -137,7 +135,7 @@ From the drop-down "Time-field name" field, select `@timestamp`, then click on "
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 
-Forwarding logs from a host relies on a Logstash forwarder agent collecting logs (e.g. from log files, from the syslog daemon) and sending them to our instance of Logstash.
+Forwarding logs from a host relies on a Logstash forwarder agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
 
 Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the [References](#References) section below for links to detailed instructions).
 
@@ -263,7 +261,7 @@ To harden this image, at the very least you would want to:
 
 ## References <a name="references"></a>
 
-- [How To Use Logstash and Kibana To Centralize Logs On CentOS 7](https://www.digitalocean.com/community/tutorials/how-to-use-logstash-and-kibana-to-centralize-logs-on-centos-7)
+- [How To Install Elasticsearch, Logstash, and Kibana 4 on Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-4-on-ubuntu-14-04)
 - [Elasticsearch, Fluentd, and Kibana: Open Source Log Search and Visualization](https://www.digitalocean.com/community/tutorials/elasticsearch-fluentd-and-kibana-open-source-log-search-and-visualization)
 - [The Docker Book](http://www.dockerbook.com/)
 - [The Logstash Book](http://www.logstashbook.com/)
