@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.2), [Logstash](http://logstash.net/) (version 1.4.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.2), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.2), [Logstash](http://logstash.net/) (version 1.5.0), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.2), collectively known as ELK.
 
 ### Contents ###
 
@@ -19,7 +19,7 @@ This Docker image provides a convenient centralised log server and log managemen
 
 ## Installation <a name="installation"></a>
 
-Install [Docker](https://docker.com/), either using a native package (Linux) or wrapped in a virtual machine (Windows, Mac OS X – e.g. using [Boot2Docker](http://boot2docker.io/) or [Vagrant](https://www.vagrantup.com/)).
+Install [Docker](https://docker.com/), either using a native package (Linux) or wrapped in a virtual machine (Windows, OS X – e.g. using [Boot2Docker](http://boot2docker.io/) or [Vagrant](https://www.vagrantup.com/)).
 
 To pull this image from the Docker registry, open a shell prompt and enter:
 
@@ -27,7 +27,7 @@ To pull this image from the Docker registry, open a shell prompt and enter:
 
 **Note** – This image has been built automatically from the source files in the source Git repository. If you want to build the image yourself, see the [Building the image](#building-image) section below.
 
-**Note** – The size of the virtual image (as reported by `docker images`) is 954.4 MB.
+**Note** – The size of the virtual image (as reported by `docker images`) is 1,078 MB.
 
 ## Usage <a name="usage"></a>
 
@@ -40,27 +40,29 @@ This command publishes the following ports, which are needed for proper operatio
 - 5601 (Kibana web interface).
 - 9200 (Elasticsearch)
 - 5000 (Logstash server, receives logs from logstash forwarders – see the [Forwarding logs](#forwarding-logs) section below).
+
+**Note** – Logstash includes a web interface, but it is not started in this Docker image.
  
 The figure below shows how the pieces fit together.
 
-	-                                +--------------------------------------------+
-	                                 |                  ELK server (Docker image) |
-	+----------------------+         |                                            |
-	|                      |    +-----> port 5601 - Kibana web interface          |
-	|  Admin workstation   +----+    |                                            |
-	|                      |    +-----> port 9200 - Elasticsearch JSON interface  |
-	+----------------------+         |                                            |
-	                                 |                                            |
-	+----------------------+         |                                            |
-	| Server               |         |                                            |
-	| +------------------+ |         |                                            |
-	| |logstash forwarder+------------> port 5000 - Logstash server               |
-	| +------------------+ |         |                                            |
-	+----------------------+         +--------------------------------------------+
+	-                                +-----------------------------------------------+
+	                                 |                  ELK server (Docker image)    |
+	+----------------------+         |                                               |
+	|                      |    +-----> port 5601 - Kibana web interface             |
+	|  Admin workstation   +----+    |                                               |
+	|                      |    +-----> port 9200 - Elasticsearch JSON interface     |
+	+----------------------+         |                                               |
+	                                 |  port 9292 - Logstash web interface (unused)  |
+	+----------------------+         |                                               |
+	| Server               |         |                                               |
+	| +------------------+ |         |                                               |
+	| |logstash forwarder+------------> port 5000 - Logstash server                  |
+	| +------------------+ |         |                                               |
+	+----------------------+         +-----------------------------------------------+
 
 Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a local native version of Docker, or the IP address of the virtual machine if running a VM-hosted version of Docker (see note).
 
-**Note** – To configure and/or find out the IP address of a VM-hosted Docker installation, see [https://docs.docker.com/installation/windows/](https://docs.docker.com/installation/windows/) (Windows) and [https://docs.docker.com/installation/mac/](https://docs.docker.com/installation/mac/) (Mac OS X) for guidance if using Boot2Docker. If you're using [Vagrant](https://www.vagrantup.com/), you'll need to set up port forwarding (see [https://docs.vagrantup.com/v2/networking/forwarded_ports.html](https://docs.vagrantup.com/v2/networking/forwarded_ports.html).
+**Note** – To configure and/or find out the IP address of a VM-hosted Docker installation, see [https://docs.docker.com/installation/windows/](https://docs.docker.com/installation/windows/) (Windows) and [https://docs.docker.com/installation/mac/](https://docs.docker.com/installation/mac/) (OS X) for guidance if using Boot2Docker. If you're using [Vagrant](https://www.vagrantup.com/), you'll need to set up port forwarding (see [https://docs.vagrantup.com/v2/networking/forwarded_ports.html](https://docs.vagrantup.com/v2/networking/forwarded_ports.html).
 
 You can stop the container with `^C`, and start it again with `sudo docker start elk`.
 
@@ -137,7 +139,7 @@ From the drop-down "Time-field name" field, select `@timestamp`, then click on "
 
 Forwarding logs from a host relies on a Logstash forwarder agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
 
-Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the [References](#References) section below for links to detailed instructions).
+Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#References)* section below for links to detailed instructions).
 
 Here is a sample configuration file for Logstash forwarder, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs. 
 
@@ -178,22 +180,24 @@ In the sample configuration file, make sure that you:
 
 ### Linking a Docker container to the ELK container <a name="linking-containers"></a>
 
-If you want to forward logs from a local Docker container to the ELK container, then you need to link the two containers.
+If you want to forward logs from a Docker container to the ELK container, then you need to link the two containers.
+
+**Note** – The log-emitting Docker container must have a Logstash forwarder agent running in it for this to work.
 
 First of all, give the ELK container a name (e.g. `elk`) using the `--name` option:  
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk
 
-Then start the log-emitting container with the `--link` option:
+Then start the log-emitting container with the `--link` option (replacing `your/image` with the name of the Logstash-forwarder-enabled image you're forwarding logs from):
 
-	$ sudo docker run -p 80:80 -it --link elk:elk sebp/nginx
+	$ sudo docker run -p 80:80 -it --link elk:elk your/image
 
 From the perspective of the log emitting container, the ELK container is now known as `elk`, which is the hostname to be used in the `logstash-forwarder` configuration file.
 
-With Compose here's what example entries for a (locally built log-generating) nginx container and an ELK container might look like in the `docker-compose.yml` file. 
+With Compose here's what example entries for a (locally built log-generating) container and an ELK container might look like in the `docker-compose.yml` file. 
 
-	nginx:
-	  build: nginx
+	yourapp:
+	  image: your/image
 	  ports:
 	    - "80:80"
 	  links:

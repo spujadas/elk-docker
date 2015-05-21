@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 1.5.2, Logstash 1.4.2, Kibana 4.0.2
+# Elasticsearch 1.5.2, Logstash 1.5.0, Kibana 4.0.2
 
 # Build with:
 # docker build . -t <repo-user>/elk
@@ -15,7 +15,7 @@ ENV REFRESHED_AT 2015-04-30
 #                                INSTALLATION
 ###############################################################################
 
-### install elasticsearch and logstash
+### install Elasticsearch
 
 RUN apt-get update -qq \
  && apt-get install -qqy curl
@@ -23,23 +23,42 @@ RUN apt-get update -qq \
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.5/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
 
-RUN echo deb http://packages.elasticsearch.org/logstash/1.4/debian stable main > /etc/apt/sources.list.d/logstash.list
-
 RUN apt-get update -qq \
  && apt-get install -qqy \
 		elasticsearch \
-		logstash=1.4.2-1-2c0f5a1 \
-		openjdk-7-jdk
+		openjdk-7-jdk \
+ && apt-get clean
 
 
-### install kibana
+### install Logstash
+
+ENV LOGSTASH_HOME /opt/logstash
+ENV LOGSTASH_PACKAGE logstash-1.5.0.tar.gz
+
+RUN mkdir ${LOGSTASH_HOME} \
+ && curl -O https://download.elasticsearch.org/logstash/logstash/${LOGSTASH_PACKAGE} \
+ && tar xzf ${LOGSTASH_PACKAGE} -C ${LOGSTASH_HOME} --strip-components=1 \
+ && rm -f ${LOGSTASH_PACKAGE}
+
+ADD ./logstash-init /etc/init.d/logstash
+ADD ./logstash-web-init /etc/init.d/logstash-web
+RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash /etc/init.d/logstash-web \
+ && chmod +x /etc/init.d/logstash /etc/init.d/logstash-web \
+ && groupadd -r logstash \
+ && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -g logstash logstash \
+ && chown -R logstash:logstash ${LOGSTASH_HOME} \
+ && mkdir -p /var/log/logstash /etc/logstash/conf.d
+
+
+### install Kibana
 
 ENV KIBANA_HOME /opt/kibana
+ENV KIBANA_PACKAGE kibana-4.0.2-linux-x64.tar.gz
 
 RUN mkdir ${KIBANA_HOME} \
- && curl -O https://download.elasticsearch.org/kibana/kibana/kibana-4.0.2-linux-x64.tar.gz \
- && tar xzf kibana-4.0.2-linux-x64.tar.gz -C ${KIBANA_HOME} --strip-components=1 \
- && rm -f kibana-4.0.2-linux-x64.tar.gz
+ && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \
+ && tar xzf ${KIBANA_PACKAGE} -C ${KIBANA_HOME} --strip-components=1 \
+ && rm -f ${KIBANA_PACKAGE}
 
 ADD ./kibana4-init /etc/init.d/kibana4
 RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana4 \
@@ -53,12 +72,12 @@ RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana4
 #                               CONFIGURATION
 ###############################################################################
 
-### configure and start elasticsearch
+### configure Elasticsearch
 
 ADD ./elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 
 
-### configure and start logstash
+### configure Logstash
 
 # cert/key
 RUN mkdir -p /etc/pki/tls/certs && mkdir /etc/pki/tls/private
