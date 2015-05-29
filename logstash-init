@@ -52,6 +52,9 @@ start() {
   HOME=${LS_HOME}
   export PATH HOME JAVA_OPTS LS_HEAP_SIZE LS_JAVA_OPTS LS_USE_GC_LOGGING
 
+  touch ${LS_LOG_FILE}
+  chown ${LS_USER} ${LS_LOG_FILE}
+
   # set ulimit as (root, presumably) first, before we drop privileges
   ulimit -n ${LS_OPEN_FILES}
 
