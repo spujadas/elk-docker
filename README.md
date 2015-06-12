@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.5.2), [Logstash](http://logstash.net/) (version 1.5.0), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.0.2), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.6.0), [Logstash](http://logstash.net/) (version 1.5.0), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.0), collectively known as ELK.
 
 ### Contents ###
 
@@ -27,7 +27,7 @@ To pull this image from the Docker registry, open a shell prompt and enter:
 
 **Note** – This image has been built automatically from the source files in the source Git repository. If you want to build the image yourself, see the [Building the image](#building-image) section below.
 
-**Note** – The size of the virtual image (as reported by `docker images`) is 1,078 MB.
+**Note** – The size of the virtual image (as reported by `docker images`) is 1,051 MB.
 
 ## Usage <a name="usage"></a>
 

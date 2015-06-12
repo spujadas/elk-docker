@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 1.5.2, Logstash 1.5.0, Kibana 4.0.2
+# Elasticsearch 1.6.0, Logstash 1.5.0, Kibana 4.1.0
 
 # Build with:
 # docker build . -t <repo-user>/elk
@@ -21,7 +21,7 @@ RUN apt-get update -qq \
  && apt-get install -qqy curl
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
-RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.5/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
+RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.6/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
 
 RUN apt-get update -qq \
  && apt-get install -qqy \
@@ -53,7 +53,7 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash /etc
 ### install Kibana
 
 ENV KIBANA_HOME /opt/kibana
-ENV KIBANA_PACKAGE kibana-4.0.2-linux-x64.tar.gz
+ENV KIBANA_PACKAGE kibana-4.1.0-linux-x64.tar.gz
 
 RUN mkdir ${KIBANA_HOME} \
  && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \
