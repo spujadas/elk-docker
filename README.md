@@ -38,27 +38,29 @@ Run the container from the image with the following command:
 This command publishes the following ports, which are needed for proper operation of the ELK stack:
 
 - 5601 (Kibana web interface).
-- 9200 (Elasticsearch)
+- 9200 (Elasticsearch JSON interface).
 - 5000 (Logstash server, receives logs from logstash forwarders – see the [Forwarding logs](#forwarding-logs) section below).
+
+**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 5300:5300` option with the `docker` command above to publish it. 
 
 **Note** – Logstash includes a web interface, but it is not started in this Docker image.
  
 The figure below shows how the pieces fit together.
 
-	-                                +-----------------------------------------------+
-	                                 |                  ELK server (Docker image)    |
-	+----------------------+         |                                               |
-	|                      |    +-----> port 5601 - Kibana web interface             |
-	|  Admin workstation   +----+    |                                               |
-	|                      |    +-----> port 9200 - Elasticsearch JSON interface     |
-	+----------------------+         |                                               |
-	                                 |  port 9292 - Logstash web interface (unused)  |
-	+----------------------+         |                                               |
-	| Server               |         |                                               |
-	| +------------------+ |         |                                               |
-	| |logstash forwarder+------------> port 5000 - Logstash server                  |
-	| +------------------+ |         |                                               |
-	+----------------------+         +-----------------------------------------------+
+	-                                +------------------------------------------------+
+	                                 |                      ELK server (Docker image) |
+	+----------------------+         |                                                |
+	|                      |    +-----> port 5601 - Kibana web interface              |
+	|  Admin workstation   +----+    |                                                |
+	|                      |    +-----> port 9200 - Elasticsearch JSON interface      |
+	+----------------------+         |                                                |
+	                                 |  port 9292 - Logstash web interface (unused)   |
+	+----------------------+         |                                                |
+	| Server               |         |  port 9300 - Elasticsearch transport interface |
+	| +------------------+ |         |                                                |
+	| |logstash forwarder+------------> port 5000 - Logstash server                   |
+	| +------------------+ |         |                                                |
+	+----------------------+         +------------------------------------------------+
 
 Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a local native version of Docker, or the IP address of the virtual machine if running a VM-hosted version of Docker (see note).
 
