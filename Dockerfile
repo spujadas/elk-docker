@@ -91,8 +91,8 @@ ADD ./11-nginx.conf /etc/logstash/conf.d/11-nginx.conf
 ADD ./30-lumberjack-output.conf /etc/logstash/conf.d/30-lumberjack-output.conf
 
 # patterns
-ADD ./nginx.pattern /opt/logstash/patterns/nginx
-RUN chown logstash:logstash /opt/logstash/patterns/*
+ADD ./nginx.pattern ${LOGSTASH_HOME}/patterns/nginx
+RUN chown -R logstash:logstash ${LOGSTASH_HOME}/patterns
 
 
 ###############################################################################
