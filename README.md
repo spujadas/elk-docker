@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.6.0), [Logstash](http://logstash.net/) (version 1.5.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.1), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.7.0), [Logstash](http://logstash.net/) (version 1.5.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.1), collectively known as ELK.
 
 ### Contents ###
 
@@ -15,7 +15,7 @@ This Docker image provides a convenient centralised log server and log managemen
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
 	- [Installing Logstash plugins](#installing-logstash-plugins)
 	- [Starting Logstash's web interface](#starting-logstash-web)
-- [Making log data persistent](#persistent-log-data)
+- [Storing log data](#storing-log-data)
 - [Security considerations](#security-considerations)
 - [References](#references)
 - [About](#about)
@@ -28,9 +28,9 @@ To pull this image from the [Docker registry](https://registry.hub.docker.com/u/
 
 	$ sudo docker pull sebp/elk
 
-**Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the [Building the image](#building-image) section below.
+**Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the *[Building the image](#building-image)* section below.
 
-**Note** – The size of the virtual image (as reported by `docker images`) is 1,076 MB.
+**Note** – The size of the virtual image (as reported by `docker images`) is 1,091 MB.
 
 ## Usage <a name="usage"></a>
 
@@ -111,11 +111,11 @@ Open a shell prompt in the container and type (replacing `<container-name>` with
 
 - At the container's shell prompt, type `start.sh&` to start Elasticsearch, Logstash and Kibana in the background, and wait for everything to be up and running (wait for `{"@timestamp":... ,"message":"Listening on 0.0.0.0:5601",...}`)
 
-Wait for Logstash to start (as indicated by the message `Logstash startup completed`), then enter:
+At the prompt, enter:
 
 	# /opt/logstash/bin/logstash -e 'input { stdin { } } output { elasticsearch { host => localhost } }'
 
-Type some dummy text followed by Enter to create a log entry:
+Wait for Logstash to start (as indicated by the message `Logstash startup completed`), then type some dummy text followed by Enter to create a log entry:
 
 	this is a dummy entry
 
@@ -144,7 +144,7 @@ Make sure that the drop-down "Time-field name" field is pre-populated with the v
 
 Forwarding logs from a host relies on a Logstash forwarder agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
 
-Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#References)* section below for links to detailed instructions).
+Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
 
 Here is a sample configuration file for Logstash forwarder, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs. 
 
@@ -288,9 +288,11 @@ To do that:
 4. Start the image with port 9292 published (e.g. `docker run ... -p 9292:9292 ...`).
 
 
-## Making log data persistent <a name="persistent-log-data"></a>
+## Storing log data <a name="storing-log-data"></a>
 
-If you want your ELK stack to keep your log data across container restarts, you need to create a Docker data volume inside the ELK container at `/var/lib/elasticsearch`, which is the directory that Elasticsearch stores its data in.
+In order to keep log data across container restarts, this image mounts `/var/lib/elasticsearch` — which is the directory that Elasticsearch stores its data in — as a volume. 
+
+You may however want to use a dedicated data volume to store this log data, for instance to facilitate back-up and restore operations.
 
 One way to do this with the `docker` command-line tool is to first create a named container called `elk_data` with a bound Docker volume by using the `-v` option:
 
@@ -299,13 +301,6 @@ One way to do this with the `docker` command-line tool is to first create a name
 You can now reuse the persistent volume from that container using the `--volumes-from` option:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 --volumes-from elk_data --name elk sebp/elk
-
-Alternatively, if you're using Compose, then simply add the two following lines to your `docker-compose.yml` file, under the `elk:` entry:
-
-	  volumes:
-	    - /var/lib/elasticsearch
-
-Then start the container with `sudo docker-compose up` as usual.
 
 **Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). As of this writing, managing Docker volumes can be a bit of a headache, so you might want to have a look at [docker-cleanup-volumes](https://github.com/chadoe/docker-cleanup-volumes), a shell script that deletes unused Docker volumes. 
 

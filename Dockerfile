@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 1.6.0, Logstash 1.5.2, Kibana 4.1.1
+# Elasticsearch 1.7.0, Logstash 1.5.2, Kibana 4.1.1
 
 # Build with:
 # docker build . -t <repo-user>/elk
@@ -9,7 +9,7 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2015-04-30
+ENV REFRESHED_AT 2015-07-17
 
 ###############################################################################
 #                                INSTALLATION
@@ -21,7 +21,7 @@ RUN apt-get update -qq \
  && apt-get install -qqy curl
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
-RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.6/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
+RUN echo deb http://packages.elasticsearch.org/elasticsearch/1.7/debian stable main > /etc/apt/sources.list.d/elasticsearch.list
 
 RUN apt-get update -qq \
  && apt-get install -qqy \
@@ -103,5 +103,6 @@ ADD ./start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 5601 9200 9300 5000
+VOLUME /var/lib/elasticsearch
 
 CMD [ "/usr/local/bin/start.sh" ]
