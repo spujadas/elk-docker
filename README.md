@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.7.0), [Logstash](http://logstash.net/) (version 1.5.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.1), collectively known as ELK.
+This Docker image provides a convenient centralized log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.7.0), [Logstash](http://logstash.net/) (version 1.5.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.1), collectively known as ELK.
 
 ### Contents ###
 
@@ -42,12 +42,12 @@ This command publishes the following ports, which are needed for proper operatio
 
 - 5601 (Kibana web interface).
 - 9200 (Elasticsearch JSON interface).
-- 5000 (Logstash server, receives logs from logstash forwarders – see the *[Forwarding logs](#forwarding-logs)* section below).
+- 5000 (Logstash server, receives logs from Logstash forwarders – see the *[Forwarding logs](#forwarding-logs)* section below).
 
-**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 5300:5300` option with the `docker` command above to publish it. 
+**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 5300:5300` option with the `docker` command above to publish it.
 
 **Note** – Logstash includes a web interface, but it is not started in this Docker image. See the *[Starting Logstash's web interface](#starting-logstash-web)* section below for guidance on how to extend the base image to start it.
- 
+
 The figure below shows how the pieces fit together.
 
 	-                                +------------------------------------------------+
@@ -86,7 +86,7 @@ If you're using [Docker Compose](https://docs.docker.com/compose/) (formerly kno
 
 You can then start the ELK container like this:
 
-	$ sudo docker-compose up elk 
+	$ sudo docker-compose up elk
 
 ### Creating a dummy log entry <a name="creating-dummy-log-entry"></a>
 
@@ -100,7 +100,7 @@ In another terminal window, find out the name of the container running ELK, whic
 
 Open a shell prompt in the container and type (replacing `<container-name>` with the name of the container, e.g. `elkdocker_elk_1` in the example above):
 
-	$ sudo docker exec -it <container-name> /bin/bash 
+	$ sudo docker exec -it <container-name> /bin/bash
 
 **Note** - If you're running a pre-1.4 version of Docker (before the `exec` command was introduced) then:
 
@@ -109,7 +109,7 @@ Open a shell prompt in the container and type (replacing `<container-name>` with
 	- With the regular `docker` command use `sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk /bin/bash` – note the extra `/bin/bash` at the end compared to the usual command line
 	- With Compose use `sudo docker-compose run --service-ports elk /bin/bash`.
 
-- At the container's shell prompt, type `start.sh&` to start Elasticsearch, Logstash and Kibana in the background, and wait for everything to be up and running (wait for `{"@timestamp":... ,"message":"Listening on 0.0.0.0:5601",...}`)
+- At the container's shell prompt, type `start.sh&` to start Elasticsearch, Logstash and Kibana in the background, and wait for everything to be up and running (wait for `{"@timestamp": ... , "message": "Listening on 0.0.0.0:5601", ... }`)
 
 At the prompt, enter:
 
@@ -121,24 +121,24 @@ Wait for Logstash to start (as indicated by the message `Logstash startup comple
 
 **Note** - You can create as many entries as you want. Use `^C` to go back to the bash prompt.
 
-If you browse to *http://<your-host>:9200/_search?pretty* (e.g. [http://localhost:9200/_search?pretty](http://localhost:9200/_search?pretty) for a local native instance of Docker) you'll see that Elasticsearch has indexed the entry:
+If you browse to `http://<your-host>:9200/_search?pretty` (e.g. [http://localhost:9200/_search?pretty](http://localhost:9200/_search?pretty) for a local native instance of Docker) you'll see that Elasticsearch has indexed the entry:
 
 	{
 	  ...
-	  "hits" : {
+	  "hits": {
 	    ...
-	    "hits" : [ {
-	      "_index" : "logstash-...",
-	      "_type" : "logs",
-		  ...
-	      "_source":{"message":"this is a dummy entry","@version":"1","@timestamp":...}
+	    "hits": [ {
+	      "_index": "logstash-...",
+	      "_type": "logs",
+	      ...
+	      "_source": { "message": "this is a dummy entry", "@version": "1", "@timestamp": ... }
 	    } ]
 	  }
 	}
 
-You can now browse to Kibana's web interface at *http://<your-host>:5601* (e.g. [http://localhost:5601](http://localhost:5601) for a local native instance of Docker).
+You can now browse to Kibana's web interface at `http://<your-host>:5601` (e.g. [http://localhost:5601](http://localhost:5601) for a local native instance of Docker).
 
-Make sure that the drop-down "Time-field name" field is pre-populated with the value `@timestamp`, then click on "Create", and you're good to go. 
+Make sure that the drop-down "Time-field name" field is pre-populated with the value `@timestamp`, then click on "Create", and you're good to go.
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 
@@ -146,7 +146,7 @@ Forwarding logs from a host relies on a Logstash forwarder agent that collects l
 
 Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
 
-Here is a sample configuration file for Logstash forwarder, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs. 
+Here is a sample configuration file for Logstash forwarder, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs.
 
 	{
 	  "network": {
@@ -179,9 +179,9 @@ By default (see `/etc/init.d/logstash-forwarder` if you need to tweak anything):
 In the sample configuration file, make sure that you:
 
 - Replace `elk` in `elk:5000` with the hostname or IP address of the ELK-serving host.
-- Copy the `logstash-forwarder.crt` file (which contains the Logstash server's certificate) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.  
+- Copy the `logstash-forwarder.crt` file (which contains the Logstash server's certificate) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
 
-**Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.  
+**Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.
 
 ### Linking a Docker container to the ELK container <a name="linking-containers"></a>
 
@@ -189,7 +189,7 @@ If you want to forward logs from a Docker container to the ELK container, then y
 
 **Note** – The log-emitting Docker container must have a Logstash forwarder agent running in it for this to work.
 
-First of all, give the ELK container a name (e.g. `elk`) using the `--name` option:  
+First of all, give the ELK container a name (e.g. `elk`) using the `--name` option:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk
 
@@ -199,7 +199,7 @@ Then start the log-emitting container with the `--link` option (replacing `your/
 
 From the perspective of the log emitting container, the ELK container is now known as `elk`, which is the hostname to be used in the `logstash-forwarder` configuration file.
 
-With Compose here's what example entries for a (locally built log-generating) container and an ELK container might look like in the `docker-compose.yml` file. 
+With Compose here's what example entries for a (locally built log-generating) container and an ELK container might look like in the `docker-compose.yml` file.
 
 	yourapp:
 	  image: your/image
@@ -207,14 +207,13 @@ With Compose here's what example entries for a (locally built log-generating) co
 	    - "80:80"
 	  links:
 	    - elk
-	
+
 	elk:
 	  image: sebp/elk
 	  ports:
 	    - "5601:5601"
 	    - "9200:9200"
 	    - "5000:5000"
-  
 
 ## Building the image <a name="building-image"></a>
 
@@ -241,16 +240,16 @@ The next few subsections present some typical use cases.
 
 Elasticsearch's home directory in the image is `/usr/share/elasticsearch`, its [plugin management script](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-plugins.html) (`plugin`) resides in the `bin` subdirectory, and plugins are installed in `plugins`.
 
-A `Dockerfile` like the following will extend the base image and install Elastic HQ, a management and monitoring plugin for Elasticsearch, using `plugin`. 
+A `Dockerfile` like the following will extend the base image and install Elastic HQ, a management and monitoring plugin for Elasticsearch, using `plugin`.
 
 	FROM sebp/elk
-	
+
 	ENV ES_HOME /usr/share/elasticsearch
 	WORKDIR ${ES_HOME}
 
 	RUN bin/plugin -i royrusso/elasticsearch-HQ
 
-You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image. The Elastic HQ interface will be accessible at *http://<your-host>:9200/_plugin/HQ/* (e.g. [http://localhost:9200/_plugin/HQ/](http://localhost:9200/_plugin/HQ/) for a local native instance of Docker). 
+You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image. The Elastic HQ interface will be accessible at `http://<your-host>:9200/_plugin/HQ/` (e.g. [http://localhost:9200/_plugin/HQ/](http://localhost:9200/_plugin/HQ/) for a local native instance of Docker).
 
 ### Installing Logstash plugins <a name="installing-logstash-plugins"></a>
 
@@ -259,7 +258,7 @@ The name of Logstash's home directory in the image is stored in the `LOGSTASH_HO
 The following `Dockerfile` can be used to extend the base image and install the [RSS input plugin](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-rss.html):
 
 	FROM sebp/elk
-	
+
 	WORKDIR ${LOGSTASH_HOME}
 	RUN bin/plugin install logstash-input-rss
 
@@ -273,15 +272,14 @@ To do that:
 
 1. Download the [`start.sh` script from the image's source](https://raw.githubusercontent.com/spujadas/elk-docker/master/start.sh), and add this line in it before the `tail -f /var/log/elasticsearch/elasticsearch.log` line:
 
-		service logstash-web start
+	service logstash-web start
 
 2. Create the following `Dockerfile` next to this updated `start.sh` script:
 
-	    FROM sebp/elk
-    	
-    	ADD ./start.sh /usr/local/bin/start.sh
-		EXPOSE 9292
-	
+	FROM sebp/elk
+
+	ADD ./start.sh /usr/local/bin/start.sh
+	EXPOSE 9292
 
 3. Build the image as usual (see the *[Building the image](#building-image)* section above).
 
@@ -290,7 +288,7 @@ To do that:
 
 ## Storing log data <a name="storing-log-data"></a>
 
-In order to keep log data across container restarts, this image mounts `/var/lib/elasticsearch` — which is the directory that Elasticsearch stores its data in — as a volume. 
+In order to keep log data across container restarts, this image mounts `/var/lib/elasticsearch` — which is the directory that Elasticsearch stores its data in — as a volume.
 
 You may however want to use a dedicated data volume to store this log data, for instance to facilitate back-up and restore operations.
 
@@ -302,7 +300,7 @@ You can now reuse the persistent volume from that container using the `--volumes
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 --volumes-from elk_data --name elk sebp/elk
 
-**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). As of this writing, managing Docker volumes can be a bit of a headache, so you might want to have a look at [docker-cleanup-volumes](https://github.com/chadoe/docker-cleanup-volumes), a shell script that deletes unused Docker volumes. 
+**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). As of this writing, managing Docker volumes can be a bit of a headache, so you might want to have a look at [docker-cleanup-volumes](https://github.com/chadoe/docker-cleanup-volumes), a shell script that deletes unused Docker volumes.
 
 See Docker's page on [Managing Data in Containers](https://docs.docker.com/userguide/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
 

@@ -2,7 +2,7 @@
 # Elasticsearch 1.7.0, Logstash 1.5.2, Kibana 4.1.1
 
 # Build with:
-# docker build . -t <repo-user>/elk
+# docker build -t <repo-user>/elk .
 
 # Run with:
 # docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk <repo-user>/elk
@@ -60,9 +60,9 @@ RUN mkdir ${KIBANA_HOME} \
  && tar xzf ${KIBANA_PACKAGE} -C ${KIBANA_HOME} --strip-components=1 \
  && rm -f ${KIBANA_PACKAGE}
 
-ADD ./kibana4-init /etc/init.d/kibana4
-RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana4 \
- && chmod +x /etc/init.d/kibana4 \
+ADD ./kibana-init /etc/init.d/kibana
+RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
+ && chmod +x /etc/init.d/kibana \
  && groupadd -r kibana \
  && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -g kibana kibana \
  && chown -R kibana:kibana ${KIBANA_HOME}

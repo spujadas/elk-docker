@@ -19,7 +19,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 export PATH
 
-if [ `id -u` -ne 0 ]; then
+if [ $(id -u) -ne 0 ]; then
    echo "You need root privileges to run this script"
    exit 1
 fi
@@ -47,8 +47,6 @@ program=/opt/logstash/bin/logstash
 args="web -a ${LS_WEB_ADDRESS} -p ${LS_WEB_PORT}"
 
 start() {
-
-
   JAVA_OPTS=${LS_JAVA_OPTS}
   export PATH HOME JAVA_OPTS LS_HEAP_SIZE LS_JAVA_OPTS LS_USE_GC_LOGGING
   # Run the program!
@@ -70,12 +68,12 @@ start() {
 
 stop() {
   # Try a few times to kill TERM the program
-  if status ; then
-    pid=`cat "$pidfile"`
+  if status; then
+    pid=$(cat "$pidfile")
     echo "Killing $name (pid $pid) with SIGTERM"
     kill -TERM $pid
     # Wait for it to exit.
-    for i in 1 2 3 4 5 ; do
+    for i in 1 2 3 4 5; do
       echo "Waiting $name (pid $pid) to die..."
       status || break
       sleep 1
@@ -89,9 +87,9 @@ stop() {
 }
 
 status() {
-  if [ -f "$pidfile" ] ; then
-    pid=`cat "$pidfile"`
-    if kill -0 $pid > /dev/null 2> /dev/null ; then
+  if [ -f "$pidfile" ]; then
+    pid=$(cat "$pidfile")
+    if kill -0 $pid > /dev/null 2> /dev/null; then
       # process by this pid is running.
       # It may not be our pid, but that's what you get with just pidfiles.
       # TODO(sissel): Check if this process seems to be the same as the one we
@@ -107,9 +105,9 @@ status() {
 }
 
 force_stop() {
-  if status ; then
+  if status; then
     stop
-    status && kill -KILL `cat "$pidfile"`
+    status && kill -KILL $(cat "$pidfile")
   fi
 }
 
@@ -125,26 +123,28 @@ case "$1" in
     fi
     exit $code
     ;;
+
   stop) stop ;;
+
   force-stop) force_stop ;;
+
   status)
     status
     code=$?
-    if [ $code -eq 0 ] ; then
+    if [ $code -eq 0 ]; then
       echo "$name is running"
     else
       echo "$name is not running"
     fi
     exit $code
     ;;
-  restart)
 
-    stop && start
-    ;;
+  restart) stop && start ;;
+
   *)
     echo "Usage: $SCRIPTNAME {start|stop|force-stop|status|restart}" >&2
     exit 3
-  ;;
+    ;;
 esac
 
 exit $?

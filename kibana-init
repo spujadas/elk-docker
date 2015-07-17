@@ -26,7 +26,7 @@ DESC="Kibana4"
 KIBANA_USER=kibana
 KIBANA_GROUP=kibana
 
-if [ `id -u` -ne 0 ]; then
+if [ $(id -u) -ne 0 ]; then
   echo "You need root privileges to run this script"
   exit 1
 fi
@@ -41,8 +41,8 @@ case "$1" in
   start)
     log_daemon_msg "Starting $DESC"
 
-    pid=`pidofproc -p $PID_FILE kibana`
-    if [ -n "$pid" ] ; then
+    pid=$(pidofproc -p $PID_FILE kibana)
+    if [ -n "$pid" ]; then
       log_begin_msg "Already running."
       log_end_msg 0
       exit 0
@@ -62,7 +62,7 @@ case "$1" in
       if [ $? -eq 1 ]; then
         log_progress_msg "$DESC is not running but pid file exists, cleaning up"
       elif [ $? -eq 3 ]; then
-        PID="`cat $PID_FILE`"
+        PID="$(cat $PID_FILE)"
         log_failure_msg "Failed to stop $DESC (pid $PID)"
         exit 1
       fi
