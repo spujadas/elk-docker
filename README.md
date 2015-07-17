@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-This Docker image provides a convenient centralized log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.7.0), [Logstash](http://logstash.net/) (version 1.5.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.1), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.7.0), [Logstash](http://logstash.net/) (version 1.5.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.1), collectively known as ELK.
 
 ### Contents ###
 
