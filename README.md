@@ -14,7 +14,6 @@ This Docker image provides a convenient centralised log server and log managemen
 - [Extending the image](#extending-image)
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
 	- [Installing Logstash plugins](#installing-logstash-plugins)
-	- [Starting Logstash's web interface](#starting-logstash-web)
 - [Storing log data](#storing-log-data)
 - [Security considerations](#security-considerations)
 - [References](#references)
@@ -46,8 +45,6 @@ This command publishes the following ports, which are needed for proper operatio
 
 **Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 5300:5300` option with the `docker` command above to publish it.
 
-**Note** – Logstash includes a web interface, but it is not started in this Docker image. See the *[Starting Logstash's web interface](#starting-logstash-web)* section below for guidance on how to extend the base image to start it.
-
 The figure below shows how the pieces fit together.
 
 	-                                +------------------------------------------------+
@@ -57,9 +54,9 @@ The figure below shows how the pieces fit together.
 	|  Admin workstation   +----+    |                                                |
 	|                      |    +-----> port 9200 - Elasticsearch JSON interface      |
 	+----------------------+         |                                                |
-	                                 |  port 9292 - Logstash web interface (unused)   |
+	                                 |  port 9300 - Elasticsearch transport interface |
 	+----------------------+         |                                                |
-	| Server               |         |  port 9300 - Elasticsearch transport interface |
+	| Server               |         |                                                |
 	| +------------------+ |         |                                                |
 	| |logstash forwarder+------------> port 5000 - Logstash server                   |
 	| +------------------+ |         |                                                |
@@ -263,28 +260,6 @@ The following `Dockerfile` can be used to extend the base image and install the 
 	RUN bin/plugin install logstash-input-rss
 
 See the *[Building the image](#building-image)* section above for instructions on building the new image. You can then run a container based on this image using the same command line as the one in the *[Usage](#usage)* section.
-
-### Starting Logstash's web interface <a name="starting-logstash-web"></a>
-
-Starting Logstash's web interface requires overriding the `start.sh` script from the base `sebp/elk` image to start the `logstash-web` service.
-
-To do that:
-
-1. Download the [`start.sh` script from the image's source](https://raw.githubusercontent.com/spujadas/elk-docker/master/start.sh), and add this line in it before the `tail -f /var/log/elasticsearch/elasticsearch.log` line:
-
-	service logstash-web start
-
-2. Create the following `Dockerfile` next to this updated `start.sh` script:
-
-	FROM sebp/elk
-
-	ADD ./start.sh /usr/local/bin/start.sh
-	EXPOSE 9292
-
-3. Build the image as usual (see the *[Building the image](#building-image)* section above).
-
-4. Start the image with port 9292 published (e.g. `docker run ... -p 9292:9292 ...`).
-
 
 ## Storing log data <a name="storing-log-data"></a>
 

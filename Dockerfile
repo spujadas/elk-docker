@@ -41,9 +41,8 @@ RUN mkdir ${LOGSTASH_HOME} \
  && rm -f ${LOGSTASH_PACKAGE}
 
 ADD ./logstash-init /etc/init.d/logstash
-ADD ./logstash-web-init /etc/init.d/logstash-web
-RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash /etc/init.d/logstash-web \
- && chmod +x /etc/init.d/logstash /etc/init.d/logstash-web \
+RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
+ && chmod +x /etc/init.d/logstash \
  && groupadd -r logstash \
  && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -g logstash logstash \
  && chown -R logstash:logstash ${LOGSTASH_HOME} \
