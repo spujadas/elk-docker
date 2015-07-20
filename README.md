@@ -1,5 +1,7 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
+[![](https://badge.imagelayers.io/sebp/elk:latest.svg)](https://imagelayers.io/?images=sebp/elk:latest 'Get your own badge on imagelayers.io')
+
 This Docker image provides a convenient centralised log server and log management web interface, by packaging [Elasticsearch](http://www.elasticsearch.org/) (version 1.7.0), [Logstash](http://logstash.net/) (version 1.5.2), and [Kibana](http://www.elasticsearch.org/overview/kibana/) (version 4.1.1), collectively known as ELK.
 
 ### Contents ###
@@ -28,8 +30,6 @@ To pull this image from the [Docker registry](https://registry.hub.docker.com/u/
 	$ sudo docker pull sebp/elk
 
 **Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the *[Building the image](#building-image)* section below.
-
-**Note** – The size of the virtual image (as reported by `docker images`) is 1,091 MB.
 
 ## Usage <a name="usage"></a>
 

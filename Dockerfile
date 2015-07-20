@@ -38,15 +38,15 @@ ENV LOGSTASH_PACKAGE logstash-1.5.2.tar.gz
 RUN mkdir ${LOGSTASH_HOME} \
  && curl -O https://download.elasticsearch.org/logstash/logstash/${LOGSTASH_PACKAGE} \
  && tar xzf ${LOGSTASH_PACKAGE} -C ${LOGSTASH_HOME} --strip-components=1 \
- && rm -f ${LOGSTASH_PACKAGE}
-
-ADD ./logstash-init /etc/init.d/logstash
-RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
- && chmod +x /etc/init.d/logstash \
+ && rm -f ${LOGSTASH_PACKAGE} \
  && groupadd -r logstash \
  && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -g logstash logstash \
  && chown -R logstash:logstash ${LOGSTASH_HOME} \
  && mkdir -p /var/log/logstash /etc/logstash/conf.d
+
+ADD ./logstash-init /etc/init.d/logstash
+RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
+ && chmod +x /etc/init.d/logstash
 
 
 ### install Kibana
@@ -57,14 +57,14 @@ ENV KIBANA_PACKAGE kibana-4.1.1-linux-x64.tar.gz
 RUN mkdir ${KIBANA_HOME} \
  && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \
  && tar xzf ${KIBANA_PACKAGE} -C ${KIBANA_HOME} --strip-components=1 \
- && rm -f ${KIBANA_PACKAGE}
-
-ADD ./kibana-init /etc/init.d/kibana
-RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
- && chmod +x /etc/init.d/kibana \
+ && rm -f ${KIBANA_PACKAGE} \
  && groupadd -r kibana \
  && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -g kibana kibana \
  && chown -R kibana:kibana ${KIBANA_HOME}
+
+ADD ./kibana-init /etc/init.d/kibana
+RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
+ && chmod +x /etc/init.d/kibana
 
 
 ###############################################################################
