@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 1.7.1, Logstash 1.5.4, Kibana 4.1.1
+# Elasticsearch 1.7.2, Logstash 1.5.4, Kibana 4.1.2
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -9,7 +9,7 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2015-08-15
+ENV REFRESHED_AT 2015-09-22
 
 ###############################################################################
 #                                INSTALLATION
@@ -52,7 +52,7 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
 ### install Kibana
 
 ENV KIBANA_HOME /opt/kibana
-ENV KIBANA_PACKAGE kibana-4.1.1-linux-x64.tar.gz
+ENV KIBANA_PACKAGE kibana-4.1.2-linux-x64.tar.gz
 
 RUN mkdir ${KIBANA_HOME} \
  && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \
