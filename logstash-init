@@ -88,6 +88,7 @@ stop() {
       echo "$name stop failed; still running."
     else
       echo "$name stopped."
+      rm -f $pidfile
     fi
   fi
 }
@@ -114,6 +115,7 @@ force_stop() {
   if status; then
     stop
     status && kill -KILL $(cat "$pidfile")
+    rm -f $pidfile
   fi
 }
 
