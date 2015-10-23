@@ -6,7 +6,7 @@ This Docker image provides a convenient centralised log server and log managemen
 
 ### Documentation
 
-See the [ELK Docker image documentation web page](https://spujadas.github.io/elk-docker) for complete instructions on how to use this image.
+See the [ELK Docker image documentation web page](http://elk-docker.readthedocs.org/) for complete instructions on how to use this image.
 
 ### About
 
