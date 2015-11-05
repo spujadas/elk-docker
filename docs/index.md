@@ -29,6 +29,8 @@ To pull this image from the [Docker registry](https://hub.docker.com/r/sebp/elk/
 
 **Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the *[Building the image](#building-image)* section below.
 
+**Note** – The last image using the Elasticsearch 1.x and Logstash 1.x branches can be pulled using `sudo docker pull sebp/elk:E1L1K4`. The versions of the ELK components in that image are: Elasticsearch 1.7.3, Logstash 1.5.5, and Kibana 4.1.2.
+
 ## Usage <a name="usage"></a>
 
 Run the container from the image with the following command:
