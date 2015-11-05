@@ -2,7 +2,7 @@
 
 [![](https://badge.imagelayers.io/sebp/elk:latest.svg)](https://imagelayers.io/?images=sebp/elk:latest 'Get your own badge on imagelayers.io')
 
-This Docker image provides a convenient centralised log server and log management web interface, by packaging Elasticsearch (version 1.7.3), Logstash (version 1.5.4), and Kibana (version 4.1.2), collectively known as ELK.
+This Docker image provides a convenient centralised log server and log management web interface, by packaging Elasticsearch (version 2.0.0), Logstash (version 2.0.0), and Kibana (version 4.2.0), collectively known as ELK.
 
 ### Documentation
 
