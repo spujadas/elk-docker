@@ -9,6 +9,8 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Running the container using Docker Compose](#running-with-docker-compose)
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
 - [Forwarding logs](#forwarding-logs)
+	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
+	- [Forwarding logs with Filebeats](#forwarding-logs-filebeats)
 	- [Linking a Docker container to the ELK container](#linking-containers)
 - [Building the image](#building-image)
 - [Extending the image](#extending-image)
@@ -123,7 +125,11 @@ Make sure that the drop-down "Time-field name" field is pre-populated with the v
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 
-Forwarding logs from a host relies on a Logstash forwarder agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
+Forwarding logs from a host relies on a forwarding agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
+
+The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it may eventually be phased out in favour of Filebeats. The two approaches are therefore presented below.
+
+### Forwarding logs with Logstash forwarder <a name="forwarding-logs-logstash-forwarder"></a>
 
 Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
 
@@ -163,6 +169,60 @@ In the sample configuration file, make sure that you:
 - Copy the `logstash-forwarder.crt` file (which contains the Logstash server's certificate) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.
+
+### Forwarding logs with Filebeats <a name="forwarding-logs-filebeat"></a>
+
+Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
+
+Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs.
+
+	output:
+	  logstash:
+	    enabled: true
+	    hosts:
+	      - elk:5044
+	    timeout: 15
+	
+	filebeat:
+	  prospectors:
+	    -
+	      paths:
+	        - /var/log/syslog
+	        - /var/log/auth.log
+	      document_type: syslog
+	    -
+	      paths:
+	        - "/var/log/nginx/*.log"
+	      document_type: nginx-access
+
+In the sample configuration file, make sure that you replace `elk` in `elk:5044` with the hostname or IP address of the ELK-serving host.
+
+**Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
+
+Additionally, the ELK image needs to extended (see [Extending the image](#extending-image) below for more information) for Logstash to accept Beat events:
+
+- An input configuration file such as the following (which you can name `/etc/logstash/conf.d/02-beats-input.conf`) must be added to the image.
+
+		input {
+		  beats {
+		    port => 5044
+		  }
+		}
+
+- Port 5044 must be exposed in order to be publishable (and therefore reachable) from Filebeat.
+
+**Note** – This Beats-enabled configuration of Logstash may be natively included in a future version of the ELK image.
+
+Once the ELK image has been extended and started (with port 5044 published), on the log-emitting host where Filebeat has been installed:
+
+- Before starting Filebeat for the first time, run this command (replace `elk` with the appropriate hostname) to load the default index template in Elasticsearch:
+
+		curl -XPUT 'http://elk:9200/_template/filebeat?pretty' -d@/etc/filebeat/filebeat.template.json
+
+- Start Filebeat:
+
+		sudo /etc/init.d/filebeat start
+
 
 ### Linking a Docker container to the ELK container <a name="linking-containers"></a>
 
@@ -278,7 +338,11 @@ To harden this image, at the very least you would want to:
 - [How To Install Elasticsearch, Logstash, and Kibana 4 on Ubuntu 14.04](https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-4-on-ubuntu-14-04)
 - [The Docker Book](http://www.dockerbook.com/)
 - [The Logstash Book](http://www.logstashbook.com/)
-- [Elastic's reference documentation](https://www.elastic.co/guide/index.html)
+- [Elastic's reference documentation](https://www.elastic.co/guide/index.html):
+	- [Elasticsearch Reference](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html)
+	- [Logstash Reference](https://www.elastic.co/guide/en/logstash/current/index.html)
+	- [Kibana Reference](https://www.elastic.co/guide/en/kibana/current/index.html)
+	- [Filebeat Reference](https://www.elastic.co/guide/en/beats/filebeat/current/index.html)
 
 ## About <a name="about"></a>
 
