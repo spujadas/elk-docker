@@ -10,7 +10,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
 - [Forwarding logs](#forwarding-logs)
 	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
-	- [Forwarding logs with Filebeats](#forwarding-logs-filebeats)
+	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
 	- [Linking a Docker container to the ELK container](#linking-containers)
 - [Building the image](#building-image)
 - [Extending the image](#extending-image)
@@ -127,7 +127,7 @@ Make sure that the drop-down "Time-field name" field is pre-populated with the v
 
 Forwarding logs from a host relies on a forwarding agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
 
-The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it may eventually be phased out in favour of Filebeats. The two approaches are therefore presented below.
+The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it may eventually be phased out in favour of Filebeat. The two approaches are therefore presented below.
 
 ### Forwarding logs with Logstash forwarder <a name="forwarding-logs-logstash-forwarder"></a>
 
@@ -170,7 +170,7 @@ In the sample configuration file, make sure that you:
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.
 
-### Forwarding logs with Filebeats <a name="forwarding-logs-filebeat"></a>
+### Forwarding logs with Filebeat <a name="forwarding-logs-filebeat"></a>
 
 Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
 
