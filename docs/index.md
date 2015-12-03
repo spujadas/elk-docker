@@ -45,7 +45,7 @@ This command publishes the following ports, which are needed for proper operatio
 - 9200 (Elasticsearch JSON interface).
 - 5000 (Logstash server, receives logs from Logstash forwarders – see the *[Forwarding logs](#forwarding-logs)* section below).
 
-**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 5300:5300` option with the `docker` command above to publish it.
+**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it.
 
 The figure below shows how the pieces fit together.
 
