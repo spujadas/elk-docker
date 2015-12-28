@@ -37,19 +37,20 @@ To pull this image from the [Docker registry](https://hub.docker.com/r/sebp/elk/
 
 Run the container from the image with the following command:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk sebp/elk
 
 This command publishes the following ports, which are needed for proper operation of the ELK stack:
 
 - 5601 (Kibana web interface).
 - 9200 (Elasticsearch JSON interface).
-- 5000 (Logstash server, receives logs from Logstash forwarders – see the *[Forwarding logs](#forwarding-logs)* section below).
+- 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs](#forwarding-logs)* section below).
+- 5000 (Logstash Lumberjack interface, receives logs from Logstash forwarders – see the *[Forwarding logs](#forwarding-logs)* section below).
 
 **Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it.
 
 The figure below shows how the pieces fit together.
 
-![](http://i.imgur.com/RVW12Md.png)
+![](http://i.imgur.com/wDertsM.png)
 
 Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a local native version of Docker, or the IP address of the virtual machine if running a VM-hosted version of Docker (see note).
 
@@ -68,6 +69,7 @@ If you're using [Docker Compose](https://docs.docker.com/compose/) to manage you
 	  ports:
 	    - "5601:5601"
 	    - "9200:9200"
+	    - "5044:5044"
 	    - "5000:5000"
 
 You can then start the ELK container like this:
@@ -102,7 +104,7 @@ Wait for Logstash to start (as indicated by the message `Logstash startup comple
 
 	this is a dummy entry
 
-**Note** - You can create as many entries as you want. Use `^C` to go back to the bash prompt.
+**Note** – You can create as many entries as you want. Use `^C` to go back to the bash prompt.
 
 If you browse to `http://<your-host>:9200/_search?pretty` (e.g. [http://localhost:9200/_search?pretty](http://localhost:9200/_search?pretty) for a local native instance of Docker) you'll see that Elasticsearch has indexed the entry:
 
@@ -127,9 +129,55 @@ Make sure that the drop-down "Time-field name" field is pre-populated with the v
 
 Forwarding logs from a host relies on a forwarding agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
 
-The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it may eventually be phased out in favour of Filebeat. The two approaches are therefore presented below.
+The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it will be phased out in favour of Filebeat, which should now be the preferred option. The two approaches are described below.
+
+### Forwarding logs with Filebeat <a name="forwarding-logs-filebeat"></a>
+
+Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
+
+**Note** – The `nginx-filebeat` subdirectory of the [source Git repository on GitHub](https://github.com/spujadas/elk-docker) contains a sample `Dockerfile` which enables you to create a Docker image that implements the steps below.
+
+Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs.
+
+	output:
+	  logstash:
+	    enabled: true
+	    hosts:
+	      - elk:5044
+	    tls:
+		  certificate_authorities:
+      	    - /etc/pki/tls/certs/logstash-beats.crt
+	    timeout: 15
+	
+	filebeat:
+	  prospectors:
+	    -
+	      paths:
+	        - /var/log/syslog
+	        - /var/log/auth.log
+	      document_type: syslog
+	    -
+	      paths:
+	        - "/var/log/nginx/*.log"
+	      document_type: nginx-access
+
+In the sample configuration file, make sure that you replace `elk` in `elk:5044` with the hostname or IP address of the ELK-serving host.
+
+You'll also need to copy the `logstash-beats.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Beats input plugin) from the ELK image to `/etc/pki/tls/certs/logstash-beats.crt`.
+
+**Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
+
+Before starting Filebeat for the first time, run this command (replace `elk` with the appropriate hostname) to load the default index template in Elasticsearch:
+
+		curl -XPUT 'http://elk:9200/_template/filebeat?pretty' -d@/etc/filebeat/filebeat.template.json
+
+Start Filebeat:
+
+		sudo /etc/init.d/filebeat start
 
 ### Forwarding logs with Logstash forwarder <a name="forwarding-logs-logstash-forwarder"></a>
+
+**Note** – This approach is deprecated: [using Filebeat](#forwarding-logs-filebeat) is now the preferred way to forward logs.
 
 Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
 
@@ -163,66 +211,11 @@ By default (see `/etc/init.d/logstash-forwarder` if you need to tweak anything):
 - The Logstash forwarder configuration file must be located in `/etc/logstash-forwarder`.
 - The Logstash forwarder needs a syslog daemon (e.g. rsyslogd, syslog-ng) to be running.
 
-In the sample configuration file, make sure that you:
+In the sample configuration file, make sure that you replace `elk` in `elk:5000` with the hostname or IP address of the ELK-serving host.
 
-- Replace `elk` in `elk:5000` with the hostname or IP address of the ELK-serving host.
-- Copy the `logstash-forwarder.crt` file (which contains the Logstash server's certificate) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
+You'll also need to copy the `logstash-forwarder.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Lumberjack input plugin) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.
-
-### Forwarding logs with Filebeat <a name="forwarding-logs-filebeat"></a>
-
-Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
-
-Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs.
-
-	output:
-	  logstash:
-	    enabled: true
-	    hosts:
-	      - elk:5044
-	    timeout: 15
-	
-	filebeat:
-	  prospectors:
-	    -
-	      paths:
-	        - /var/log/syslog
-	        - /var/log/auth.log
-	      document_type: syslog
-	    -
-	      paths:
-	        - "/var/log/nginx/*.log"
-	      document_type: nginx-access
-
-In the sample configuration file, make sure that you replace `elk` in `elk:5044` with the hostname or IP address of the ELK-serving host.
-
-**Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
-
-Additionally, the ELK image needs to extended (see [Extending the image](#extending-image) below for more information) for Logstash to accept Beat events:
-
-- An input configuration file such as the following (which you can name `/etc/logstash/conf.d/02-beats-input.conf`) must be added to the image.
-
-		input {
-		  beats {
-		    port => 5044
-		  }
-		}
-
-- Port 5044 must be exposed in order to be publishable (and therefore reachable) from Filebeat.
-
-**Note** – This Beats-enabled configuration of Logstash may be natively included in a future version of the ELK image.
-
-Once the ELK image has been extended and started (with port 5044 published), on the log-emitting host where Filebeat has been installed:
-
-- Before starting Filebeat for the first time, run this command (replace `elk` with the appropriate hostname) to load the default index template in Elasticsearch:
-
-		curl -XPUT 'http://elk:9200/_template/filebeat?pretty' -d@/etc/filebeat/filebeat.template.json
-
-- Start Filebeat:
-
-		sudo /etc/init.d/filebeat start
-
 
 ### Linking a Docker container to the ELK container <a name="linking-containers"></a>
 
@@ -232,7 +225,7 @@ If you want to forward logs from a Docker container to the ELK container, then y
 
 First of all, give the ELK container a name (e.g. `elk`) using the `--name` option:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -it --name elk sebp/elk
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk sebp/elk
 
 Then start the log-emitting container with the `--link` option (replacing `your/image` with the name of the Logstash-forwarder-enabled image you're forwarding logs from):
 
@@ -254,6 +247,7 @@ With Compose here's what example entries for a (locally built log-generating) co
 	  ports:
 	    - "5601:5601"
 	    - "9200:9200"
+	    - "5044:5044"
 	    - "5000:5000"
 
 ## Building the image <a name="building-image"></a>
@@ -325,13 +319,13 @@ See Docker's page on [Managing Data in Containers](https://docs.docker.com/userg
 
 ## Security considerations <a name="security-considerations"></a>
 
-As it stands this image is meant for local test use, and as such hasn't been secured: access to the ELK services is not restricted, and a default authentication server certificate (`logstash-forwarder.crt`) and private key (`logstash-forwarder.key`) are bundled with the image.
+As it stands this image is meant for local test use, and as such hasn't been secured: access to the ELK services is not restricted, and default authentication server certificates (`logstash-*.crt`) and private keys (`logstash-*.key`) for the Logstash input plugins are bundled with the image.
 
 To harden this image, at the very least you would want to:
 
 - Restrict the access to the ELK services to authorised hosts/networks only, as described in e.g. [Elasticsearch Scripting and Security](http://www.elasticsearch.org/blog/scripting-security/) and [Elastic Security: Deploying Logstash, ElasticSearch, Kibana "securely" on the Internet](http://blog.eslimasec.com/2014/05/elastic-security-deploying-logstash.html).
 - Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html)).
-- Generate a new self-signed authentication certificate for the Logstash server (e.g. `cd /etc/pki/tls; sudo openssl req -x509 -batch -nodes -subj "/CN=elk/" -days 3650 -newkey rsa:2048 -keyout private/logstash-forwarder.key -out certs/logstash-forwarder.crt` for a 10-year certificate issued to a server with hostname `elk`) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
+- Generate a new self-signed authentication certificate for the Logstash input plugins (e.g. `cd /etc/pki/tls; sudo openssl req -x509 -batch -nodes -subj "/CN=elk/" -days 3650 -newkey rsa:2048 -keyout private/logstash-beats.key -out certs/logstash-beats.crt` for a 10-year certificate issued to a server with hostname `elk` for the Beats input plugin) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
 
 ## References <a name="references"></a>
 
