@@ -85,7 +85,7 @@ stop() {
     kill -TERM $pid
     # Wait for it to exit.
     for i in 1 2 3 4 5; do
-      echo "Waiting $name (pid $pid) to die..."
+      echo "Waiting for $name (pid $pid) to die..."
       status || break
       sleep 1
     done

@@ -17,6 +17,10 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
 	- [Installing Logstash plugins](#installing-logstash-plugins)
 - [Storing log data](#storing-log-data)
+- [Setting up an Elasticsearch cluster](#elasticsearch-cluster)
+	- [Running Elasticsearch nodes on different hosts](#elasticsearch-cluster-different-hosts)
+	- [Running Elasticsearch nodes on a single host](#elasticsearch-cluster-single-host)
+	- [Optimising your Elasticsearch cluster](#optimising-elasticsearch-cluster)
 - [Security considerations](#security-considerations)
 - [References](#references)
 - [About](#about)
@@ -307,7 +311,7 @@ You may however want to use a dedicated data volume to store this log data, for 
 
 One way to do this with the `docker` command-line tool is to first create a named container called `elk_data` with a bound Docker volume by using the `-v` option:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -5000:5000 -v /var/lib/elasticsearch --name elk_data sebp/elk
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -v /var/lib/elasticsearch --name elk_data sebp/elk
 
 You can now reuse the persistent volume from that container using the `--volumes-from` option:
 
@@ -316,6 +320,117 @@ You can now reuse the persistent volume from that container using the `--volumes
 **Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). As of this writing, managing Docker volumes can be a bit of a headache, so you might want to have a look at [docker-cleanup-volumes](https://github.com/chadoe/docker-cleanup-volumes), a shell script that deletes unused Docker volumes.
 
 See Docker's page on [Managing Data in Containers](https://docs.docker.com/userguide/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
+
+## Setting up an Elasticsearch cluster <a name="elasticsearch-cluster"></a>
+
+The ELK image can be used to run an Elasticsearch cluster, either on [separate hosts](#elasticsearch-cluster-different-hosts) or (mainly for test purposes) on a [single host](#elasticsearch-cluster-single-host), as described below.
+
+For more (non-Docker-specific) information on setting up an Elasticsearch cluster, see the [Life Inside a Cluster section](https://www.elastic.co/guide/en/elasticsearch/guide/current/distributed-cluster.html) section of the Elasticsearch definitive guide.
+
+### Running Elasticsearch nodes on different hosts <a name="elasticsearch-cluster-different-hosts"></a>
+
+To run nodes on different hosts, you'll need to update Elasticsearch's `/etc/elasticsearch/elasticsearch.yml` file in the Docker image to configure the [zen discovery module](http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html) as needed for the nodes to find each other. Specifically, you need to add a `discovery.zen.ping.unicast.hosts` directive to point to the IP addresses or hostnames of hosts that should be polled to perform discovery when Elasticsearch is started on each node.
+
+As an example, start an ELK container as usual on one host, which will act as the first master. Let's assume that the host is called *elk-master.example.com*.
+
+Have a look at the cluster's health:
+
+	$ curl http://elk-master.example.com:9200/_cluster/health?pretty
+	{
+	  "cluster_name" : "elasticsearch",
+	  "status" : "yellow",
+	  "timed_out" : false,
+	  "number_of_nodes" : 1,
+	  "number_of_data_nodes" : 1,
+	  "active_primary_shards" : 6,
+	  "active_shards" : 6,
+	  "relocating_shards" : 0,
+	  "initializing_shards" : 0,
+	  "unassigned_shards" : 6,
+	  "delayed_unassigned_shards" : 6,
+	  "number_of_pending_tasks" : 0,
+	  "number_of_in_flight_fetch" : 0,
+	  "task_max_waiting_in_queue_millis" : 0,
+	  "active_shards_percent_as_number" : 50.0
+	}
+
+This shows that only one node is up at the moment, and the `yellow` status indicates that all primary shards are active, but not all replica shards are active.
+
+Then, on another host, create a file named `elasticsearch-slave.yml` (let's say it's in `/home/elk`), with the following contents:
+
+	network.host: 0.0.0.0
+	discovery.zen.ping.unicast.hosts: ["elk-master.example.com"]
+
+You can now start an ELK container that uses this configuration file, using the following command (which mounts the configuration files on the host into the container):
+
+	$ sudo docker run -it --rm=true -p 9200:9200 \
+	  -v /home/elk/elasticsearch-slave.yml:/etc/elasticsearch/elasticsearch.yml \
+	  sebp/elk
+
+Once Elasticsearch is up, displaying the cluster's health on the original host now shows:
+
+	$ curl http://elk-master.example.com:9200/_cluster/health?pretty
+	{
+	  "cluster_name" : "elasticsearch",
+	  "status" : "green",
+	  "timed_out" : false,
+	  "number_of_nodes" : 2,
+	  "number_of_data_nodes" : 2,
+	  "active_primary_shards" : 6,
+	  "active_shards" : 12,
+	  "relocating_shards" : 0,
+	  "initializing_shards" : 0,
+	  "unassigned_shards" : 0,
+	  "delayed_unassigned_shards" : 0,
+	  "number_of_pending_tasks" : 0,
+	  "number_of_in_flight_fetch" : 0,
+	  "task_max_waiting_in_queue_millis" : 0,
+	  "active_shards_percent_as_number" : 100.0
+	}
+
+### Running Elasticsearch nodes on a single host <a name="elasticsearch-cluster-single-host"></a>
+
+Setting up Elasticsearch nodes to run on a single host is similar to running the nodes on different hosts, but the containers need to be linked in order for the nodes to discover each other.
+
+Start the first node using the usual `docker` command on the host:
+
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk sebp/elk
+
+Now, create a basic `elasticsearch-slave.yml` file containing the following lines:
+
+	network.host: 0.0.0.0
+	discovery.zen.ping.unicast.hosts: ["elk"]
+
+Start a node using the following command:
+
+	$ sudo docker run -it --rm=true \
+	  -v /var/sandbox/elk-docker/elasticsearch-slave.yml:/etc/elasticsearch/elasticsearch.yml \
+	  --link elkdocker_elk_1:elk-master elkdocker_elk
+
+Note that Elasticsearch's port is not published to the host's port 9200, as it was already published by the initial ELK container.
+
+### Optimising your Elasticsearch cluster <a name="optimising-elasticsearch-cluster"></a>
+
+You can use the ELK image as is to run an Elasticsearch cluster, especially if you're just testing, but to optimise your set-up, you may want to have:
+
+- One node running the complete ELK stack, using the ELK image as is.
+
+- Several nodes running _only_ Elasticsearch.
+
+	To run Elasticsearch only, an easy way to proceed is to extend the ELK image to alter the `start.sh` script and only start Elasticsearch. Something minimal like this should do the trick:
+	
+		#!/bin/bash
+		rm -f /var/run/elasticsearch/elasticsearch.pid
+		service elasticsearch start
+		tail -f /var/log/elasticsearch/elasticsearch.log
+
+An even more optimal way to distribute Elasticsearch, Logstash and Kibana across several nodes or hosts would be to extend the ELK image in the same way as outlined above to create separate images for Elasticsearch, Logstash, and Kibana, and run these three trimmed images on the appropriate nodes or hosts (e.g. Elasticsearch on several hosts, Logstash on a dedicated host, and Kibana on another dedicated host).
+
+In this case, you would also need to make sure that the configuration file for Logstash's Elasticsearch output plugin (`/etc/logstash/conf.d/30-output.conf`) points to a host belonging to the Elasticsearch cluster rather than `localhost` (which is the default in the ELK image, since Elasticsearch and Logstash run together), e.g.:
+
+	output {
+	  elasticsearch { hosts => ["elk-master.example.com"] }
+	}
 
 ## Security considerations <a name="security-considerations"></a>
 
