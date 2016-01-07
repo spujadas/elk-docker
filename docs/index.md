@@ -9,8 +9,8 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Running the container using Docker Compose](#running-with-docker-compose)
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
 - [Forwarding logs](#forwarding-logs)
-	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
+	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
 	- [Linking a Docker container to the ELK container](#linking-containers)
 - [Building the image](#building-image)
 - [Extending the image](#extending-image)
@@ -218,6 +218,14 @@ By default (see `/etc/init.d/logstash-forwarder` if you need to tweak anything):
 In the sample configuration file, make sure that you replace `elk` in `elk:5000` with the hostname or IP address of the ELK-serving host.
 
 You'll also need to copy the `logstash-forwarder.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Lumberjack input plugin) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
+
+Lastly, you'll need to alter Logstash's Elasticsearch output plugin configuration (in `30-output.conf`) to remove the reference to the dynamic field `%{[@metadata][beat]}` in the `index` configuration option, as this field implies that Beat is being used to forward logs. A minimal configuration file such as the following would work fine:
+
+	output {
+	  elasticsearch { hosts => ["localhost"] }
+	  stdout { codec => rubydebug }
+	}
+
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.
 
