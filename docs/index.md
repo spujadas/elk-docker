@@ -64,6 +64,8 @@ You can stop the container with `^C`, and start it again with `sudo docker start
 
 As from Kibana version 4.0.0, you won't be able to see anything (not even an empty dashboard) until something has been logged (see the *[Creating a dummy log entry](#creating-dummy-log-entry)* sub-section below on how to test your set-up, and the *[Forwarding logs](#forwarding-logs)* section on how to forward logs from regular applications).
 
+When filling in the index pattern in Kibana (default is `logstash-*`), note that in this image, Logstash uses an output plugin that is configured to work with Beat-originating input (e.g. as produced by Filebeat, see [Forwarding logs with Filebeat](#forwarding-logs-filebeat)) and that logs will be indexed with a `<beatname>-` prefix (e.g. `filebeat-` when using Filebeat).
+
 ### Running the container using Docker Compose <a name="running-with-docker-compose"></a>
 
 If you're using [Docker Compose](https://docs.docker.com/compose/) to manage your Docker services (and if not you really should as it will make your life much easier!), then you can create an entry for the ELK Docker image by adding the following lines to your `docker-compose.yml` file:
