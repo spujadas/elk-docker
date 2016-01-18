@@ -60,7 +60,8 @@ RUN mkdir ${KIBANA_HOME} \
  && rm -f ${KIBANA_PACKAGE} \
  && groupadd -r kibana \
  && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -g kibana kibana \
- && chown -R kibana:kibana ${KIBANA_HOME}
+ && mkdir -p /var/log/kibana \
+ && chown -R kibana:kibana ${KIBANA_HOME} /var/log/kibana
 
 ADD ./kibana-init /etc/init.d/kibana
 RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
