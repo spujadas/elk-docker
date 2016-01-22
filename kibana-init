@@ -28,6 +28,7 @@ KIBANA_LOG_DIR=/var/log/kibana
 KIBANA_LOG_FILE="${KIBANA_LOG_DIR}/$NAME.log"
 DAEMON_OPTS="-l ${KIBANA_LOG_FILE}"
 DESC="Kibana4"
+NODE_OPTIONS="--max-old-space-size=250" 
 
 if [ $(id -u) -ne 0 ]; then
   echo "You need root privileges to run this script"
@@ -55,7 +56,7 @@ case "$1" in
     chown ${KIBANA_USER}:${KIBANA_GROUP} ${KIBANA_LOG_FILE}
 
     # Start Daemon
-    start-stop-daemon --start --user $KIBANA_USER -c $KIBANA_USER \
+    NODE_OPTIONS="$NODE_OPTIONS" start-stop-daemon --start --user $KIBANA_USER -c $KIBANA_USER \
       --group $KIBANA_GROUP --pidfile "$PID_FILE" --make-pidfile \
       --background --exec $DAEMON -- $DAEMON_OPTS
     log_end_msg $?
