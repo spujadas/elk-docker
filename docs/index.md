@@ -22,6 +22,9 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Running Elasticsearch nodes on a single host](#elasticsearch-cluster-single-host)
 	- [Optimising your Elasticsearch cluster](#optimising-elasticsearch-cluster)
 - [Security considerations](#security-considerations)
+	- [Notes on certificates](#certificates)
+- [Troubleshooting](#troubleshooting)
+- [Reporting issues](#reporting-issues)
 - [References](#references)
 - [About](#about)
 
@@ -33,7 +36,7 @@ To pull this image from the [Docker registry](https://hub.docker.com/r/sebp/elk/
 
 	$ sudo docker pull sebp/elk
 
-**Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the *[Building the image](#building-image)* section below.
+**Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the [Building the image](#building-image) section below.
 
 **Note** – The last image using the Elasticsearch 1.x and Logstash 1.x branches can be pulled using `sudo docker pull sebp/elk:E1L1K4`. The versions of the ELK components in that image are: Elasticsearch 1.7.3, Logstash 1.5.5, and Kibana 4.1.2.
 
@@ -169,7 +172,7 @@ Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, t
 
 In the sample configuration file, make sure that you replace `elk` in `elk:5044` with the hostname or IP address of the ELK-serving host.
 
-You'll also need to copy the `logstash-beats.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Beats input plugin) from the ELK image to `/etc/pki/tls/certs/logstash-beats.crt`.
+You'll also need to copy the `logstash-beats.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Beats input plugin) from the [source repository of the ELK image](https://github.com/spujadas/elk-docker) to `/etc/pki/tls/certs/logstash-beats.crt`.
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
 
@@ -444,15 +447,69 @@ In this case, you would also need to make sure that the configuration file for L
 
 ## Security considerations <a name="security-considerations"></a>
 
-As it stands this image is meant for local test use, and as such hasn't been secured: access to the ELK services is not restricted, and default authentication server certificates (`logstash-*.crt`) and private keys (`logstash-*.key`) for the Logstash input plugins are bundled with the image.
-
-**Note** – These dummy server certificates are assigned to hostname `*`, which means that they will work if you are using a single-part (i.e. no dots) domain name to reference the server from your client. For instance, in your client (e.g. Filebeat), sending logs to hostname `elk` will work, `elk.mydomain.com` will not (will produce an error along the lines of `x509: certificate is valid for *, not elk.mydomain.com`), neither will an IP address such as 192.168.0.1 (expect `x509: cannot validate certificate for 192.168.0.1 because it doesn't contain any IP SANs`). If you cannot use a single-part domain name, then you should consider issuing a certificate with the right hostname as described below (or the [IP address in the subject alternative name field](https://github.com/elastic/logstash-forwarder/issues/221#issuecomment-48390920), even though this is bad practice in general as IP addresses are likely to change), or you could simply add a single-part hostname (e.g. `elk`) to your client's `/etc/hosts` file.    
+As it stands this image is meant for local test use, and as such hasn't been secured: access to the ELK services is unrestricted, and default authentication server certificates and private keys for the Logstash input plugins are bundled with the image.
 
 To harden this image, at the very least you would want to:
 
 - Restrict the access to the ELK services to authorised hosts/networks only, as described in e.g. [Elasticsearch Scripting and Security](http://www.elasticsearch.org/blog/scripting-security/) and [Elastic Security: Deploying Logstash, ElasticSearch, Kibana "securely" on the Internet](http://blog.eslimasec.com/2014/05/elastic-security-deploying-logstash.html).
 - Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html)).
-- Generate a new self-signed authentication certificate for the Logstash input plugins (e.g. `cd /etc/pki/tls; sudo openssl req -x509 -batch -nodes -subj "/CN=elk/" -days 3650 -newkey rsa:2048 -keyout private/logstash-beats.key -out certs/logstash-beats.crt` for a 10-year certificate issued to a server with hostname `elk` for the Beats input plugin) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
+- Generate a new self-signed authentication certificate for the Logstash input plugins (see [Notes on certificates](#certificates)) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
+
+### Notes on certificates <a name="certificates"></a>
+
+Dummy server authentication certificates (`/etc/pki/tls/certs/logstash-*.crt`) and private keys (`/etc/pki/tls/private/logstash-*.key`) are included in the image.
+
+The certificates are assigned to hostname `*`, which means that they will work if you are using a single-part (i.e. no dots) domain name to reference the server from your client.
+
+**Example** – In your client (e.g. Filebeat), sending logs to hostname `elk` will work, `elk.mydomain.com` will not (will produce an error along the lines of `x509: certificate is valid for *, not elk.mydomain.com`), neither will an IP address such as 192.168.0.1 (expect `x509: cannot validate certificate for 192.168.0.1 because it doesn't contain any IP SANs`).
+
+If you cannot use a single-part domain name, then you could consider:
+
+- Issuing a self-signed certificate with the right hostname using a variant of the commands given below.
+
+- Issuing a certificate with the [IP address of the ELK stack in the subject alternative name field](https://github.com/elastic/logstash-forwarder/issues/221#issuecomment-48390920), even though this is bad practice in general as IP addresses are likely to change.
+
+- Adding a single-part hostname (e.g. `elk`) to your client's `/etc/hosts` file.    
+
+The following commands will generate a private key and a 10-year self-signed certificate issued to a server with hostname `elk` for the Beats input plugin
+
+	$ cd /etc/pki/tls
+	$ sudo openssl req -x509 -batch -nodes -subj "/CN=elk/" \
+		-days 3650 -newkey rsa:2048 \
+		-keyout private/logstash-beats.key -out certs/logstash-beats.crt
+
+To make Logstash use this certificate to authenticate itself to a Beats client, extend the ELK image to overwrite (e.g. using the `Dockerfile` directive `ADD`):
+
+- the certificate file (`logstash-beats.crt`) with `/etc/pki/tls/certs/logstash-beats.crt`.
+- the private key file (`logstash-beats.key`) with `/etc/pki/tls/private/logstash-beats.key`,
+
+Additionally, remember to configure your Beats client to trust the newly created certificate using the `certificate_authorities` directive, as presented in [Forwarding logs with Filebeat](#forwarding-logs-filebeat).
+
+## Troubleshooting <a name="troubleshooting"></a>
+
+Here are a few pointers to help you troubleshoot your containerised ELK.
+
+If your log-emitting client doesn't seem to be able to reach Logstash (or Elasticsearch, depending on where your client is meant to send logs to), make sure that:
+
+- You started the container with the right ports open (e.g. 5044 for Beats).
+
+- The ports are reachable from the client machine (e.g. make sure the appropriate rules have been set up on your firewalls to authorise outbound flows from your client and inbound flows on your ELK-hosting machine).
+
+- Your client is configured to connect to Logstash using TLS (or SSL) and that it trusts Logstash's self-signed certificate (or certificate authority if you replaced the default certificate with a proper certificate – see [Security considerations](#security-considerations)).   
+
+If this still seems to fail, then you should have a look at:
+
+- Your log-emitting client's logs.
+
+- ELK's logs, by `docker exec`'ing into the running container (see [Creating a dummy log entry](#creating-dummy-log-entry)) and checking Logstash's logs (located in `/var/log/logstash`), Elasticsearch's logs (in `/var/log/elasticsearch`), and Kibana's logs (in `/var/log/kibana`).
+
+## Reporting issues <a name="reporting-issues"></a>
+
+You can report issues with this image using [GitHub's issue tracker](https://github.com/spujadas/elk-docker/issues) (please avoid raising issues as comments on Docker Hub, if only for the fact that the notification system is broken at the time of writing so there's a fair chance that I won't see it for a while).
+
+Bearing in mind that the first thing I'll need to do is reproduce your issue, please provide as much relevant information (e.g. logs, configuration files, what you were expecting and what you got instead, any troubleshooting steps that you took, what _is_ working) as possible for me to do that.
+
+[Pull requests](https://github.com/spujadas/elk-docker/pulls) are also welcome if you have found an issue and can solve it.
 
 ## References <a name="references"></a>
 
