@@ -418,7 +418,7 @@ Start a node using the following command:
 
 	$ sudo docker run -it --rm=true \
 	  -v /var/sandbox/elk-docker/elasticsearch-slave.yml:/etc/elasticsearch/elasticsearch.yml \
-	  --link elkdocker_elk_1:elk-master elkdocker_elk
+	  --link elk:elk --name elk-slave sebp/elk
 
 Note that Elasticsearch's port is not published to the host's port 9200, as it was already published by the initial ELK container.
 
