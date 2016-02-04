@@ -25,7 +25,7 @@ RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable m
 
 RUN apt-get update -qq \
  && apt-get install -qqy \
-		elasticsearch \
+		elasticsearch=2.2.0 \
 		openjdk-7-jdk \
  && apt-get clean
 

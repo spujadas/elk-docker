@@ -5,6 +5,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 ### Contents ###
 
 - [Installation](#installation)
+	- [Pulling specific version combinations](#specific-version-combinations)
 - [Usage](#usage)
 	- [Running the container using Docker Compose](#running-with-docker-compose)
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
@@ -38,7 +39,15 @@ To pull this image from the [Docker registry](https://hub.docker.com/r/sebp/elk/
 
 **Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the [Building the image](#building-image) section below.
 
-**Note** – The last image using the Elasticsearch 1.x and Logstash 1.x branches can be pulled using `sudo docker pull sebp/elk:E1L1K4`. The versions of the ELK components in that image are: Elasticsearch 1.7.3, Logstash 1.5.5, and Kibana 4.1.2.
+### Pulling specific version combinations <a name="specific-version-combinations"></a> 
+
+Specific version combinations of Elasticsearch, Logstash and Kibana can be pulled by using tags.
+
+For instance, the image containing Elasticsearch 1.7.3, Logstash 1.5.5, and Kibana 4.1.2 (which is the last image using the Elasticsearch 1.x and Logstash 1.x branches) bears the tag `E1L1K4`, and can therefore be pulled using `sudo docker pull sebp/elk:E1L1K4`.
+
+The available tags are listed on [Docker Hub's sebp/elk image page](https://hub.docker.com/r/sebp/elk/) or GitHub repository page.
+
+By default, if not tag is indicated (or if using the tag `latest`), the latest version of the image will be pulled.
 
 ## Usage <a name="usage"></a>
 
