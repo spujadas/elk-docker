@@ -153,6 +153,8 @@ The forwarding agent that was originally used with Logstash was Logstash forward
 
 Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
 
+#### Example Filebeat set-up and configuration
+
 **Note** – The `nginx-filebeat` subdirectory of the [source Git repository on GitHub](https://github.com/spujadas/elk-docker) contains a sample `Dockerfile` which enables you to create a Docker image that implements the steps below.
 
 Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs.
@@ -192,6 +194,10 @@ Before starting Filebeat for the first time, run this command (replace `elk` wit
 Start Filebeat:
 
 		sudo /etc/init.d/filebeat start
+
+#### Note on processing multiline log entries
+
+In order to process multiline log entries (e.g. stack traces) as a single event using Filebeat, you may want to consider [Filebeat's multiline option](https://www.elastic.co/blog/beats-1-1-0-and-winlogbeat-released), which was introduced in Beats 1.1.0, as a handy alternative to altering Logstash's configuration files to use [Logstash's multiline codec](https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html).
 
 ### Forwarding logs with Logstash forwarder <a name="forwarding-logs-logstash-forwarder"></a>
 
