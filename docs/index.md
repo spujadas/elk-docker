@@ -59,8 +59,8 @@ This command publishes the following ports, which are needed for proper operatio
 
 - 5601 (Kibana web interface).
 - 9200 (Elasticsearch JSON interface).
-- 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs](#forwarding-logs)* section below).
-- 5000 (Logstash Lumberjack interface, receives logs from Logstash forwarders – see the *[Forwarding logs](#forwarding-logs)* section below).
+- 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs with Filebeat](#forwarding-logs-filebeat)* section below).
+- 5000 (Logstash Lumberjack interface, receives logs from Logstash forwarders – see the *[Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)* section below).
 
 **Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it.
 
