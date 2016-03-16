@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 2.2.0, Logstash 2.2.2, Kibana 4.4.1
+# Elasticsearch 2.2.1, Logstash 2.2.2, Kibana 4.4.2
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -25,7 +25,7 @@ RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable m
 
 RUN apt-get update -qq \
  && apt-get install -qqy \
-		elasticsearch=2.2.0 \
+		elasticsearch=2.2.1 \
 		openjdk-7-jdk \
  && apt-get clean
 
@@ -52,7 +52,7 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
 ### install Kibana
 
 ENV KIBANA_HOME /opt/kibana
-ENV KIBANA_PACKAGE kibana-4.4.1-linux-x64.tar.gz
+ENV KIBANA_PACKAGE kibana-4.4.2-linux-x64.tar.gz
 
 RUN mkdir ${KIBANA_HOME} \
  && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \
