@@ -9,6 +9,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 - [Usage](#usage)
 	- [Running the container using Docker Compose](#running-with-docker-compose)
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
+	- [Starting services selectively](#selective-services)
 - [Forwarding logs](#forwarding-logs)
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
 	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
@@ -37,7 +38,7 @@ To pull this image from the [Docker registry](https://hub.docker.com/r/sebp/elk/
 
 	$ sudo docker pull sebp/elk
 
-**Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the [Building the image](#building-image) section below.
+**Note** – This image has been built automatically from the source files in the [source Git repository on GitHub](https://github.com/spujadas/elk-docker). If you want to build the image yourself, see the [Building the image](#building-image) section.
 
 ### Pulling specific version combinations <a name="specific-version-combinations"></a> 
 
@@ -51,16 +52,18 @@ By default, if not tag is indicated (or if using the tag `latest`), the latest v
 
 ## Usage <a name="usage"></a>
 
-Run the container from the image with the following command:
+Run a container from the image with the following command:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk sebp/elk
+
+**Note** – The whole ELK stack will be started. See the *[Starting services selectively](#selective-services)* section to selectively start part of the stack.
 
 This command publishes the following ports, which are needed for proper operation of the ELK stack:
 
 - 5601 (Kibana web interface).
 - 9200 (Elasticsearch JSON interface).
-- 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs with Filebeat](#forwarding-logs-filebeat)* section below).
-- 5000 (Logstash Lumberjack interface, receives logs from Logstash forwarders – see the *[Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)* section below).
+- 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs with Filebeat](#forwarding-logs-filebeat)* section).
+- 5000 (Logstash Lumberjack interface, receives logs from Logstash forwarders – see the *[Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)* section).
 
 **Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it.
 
@@ -143,15 +146,42 @@ You can now browse to Kibana's web interface at `http://<your-host>:5601` (e.g. 
 
 Make sure that the drop-down "Time-field name" field is pre-populated with the value `@timestamp`, then click on "Create", and you're good to go.
 
+### Starting services selectively <a name="selective-services"></a>
+
+By default, when starting a container, all three of the ELK services (Elasticsearch, Logstash, Kibana) are started.
+
+The following environment variables may be used to selectively start a subset of the services:
+
+- `ELASTICSEARCH_START`: if set and set to anything other than `1`, then Elasticsearch will not be started.
+ 
+- `LOGSTASH_START`: if set and set to anything other than `1`, then Logstash will not be started.
+
+- `KIBANA_START`: if set and set to anything other than `1`, then Kibana will not be started.
+
+For example, the following command starts Elasticsearch only:
+
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it \
+		-e LOGSTASH_START=0 -e KIBANA_START=0 --name elk sebp/elk
+
+Note that if the container is to be started with Elasticsearch _disabled_, then:
+
+- If Logstash is enabled, then you need to make sure that the configuration file for Logstash's Elasticsearch output plugin (`/etc/logstash/conf.d/30-output.conf`) points to a host belonging to the Elasticsearch cluster rather than `localhost` (which is the default in the ELK image, since by default Elasticsearch and Logstash run together), e.g.:
+	
+		output {
+		  elasticsearch { hosts => ["elk-master.example.com"] }
+		}
+
+- Similarly, if Kibana is enabled, then Kibana's `kibana.yml` configuration file must first be updated to make the `elasticsearch.url` setting (default value: `"http://localhost:9200"`) point to a running instance of Elasticsearch.
+
 ## Forwarding logs <a name="forwarding-logs"></a>
 
 Forwarding logs from a host relies on a forwarding agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
 
-The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it will be phased out in favour of Filebeat, which should now be the preferred option. The two approaches are described below.
+The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it will be phased out in favour of Filebeat, which should now be the preferred option. The two approaches are described hereafter.
 
 ### Forwarding logs with Filebeat <a name="forwarding-logs-filebeat"></a>
 
-Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
+Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section for links to detailed instructions).
 
 #### Example Filebeat set-up and configuration
 
@@ -203,7 +233,7 @@ In order to process multiline log entries (e.g. stack traces) as a single event 
 
 **Note** – This approach is deprecated: [using Filebeat](#forwarding-logs-filebeat) is now the preferred way to forward logs.
 
-Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#references)* section below for links to detailed instructions).
+Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#references)* section for links to detailed instructions).
 
 Here is a sample configuration file for Logstash forwarder, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs.
 
@@ -443,22 +473,9 @@ You can use the ELK image as is to run an Elasticsearch cluster, especially if y
 
 - One node running the complete ELK stack, using the ELK image as is.
 
-- Several nodes running _only_ Elasticsearch.
+- Several nodes running _only_ Elasticsearch (see *[Starting services selectively](#selective-services)*).
 
-	To run Elasticsearch only, an easy way to proceed is to extend the ELK image to alter the `start.sh` script and only start Elasticsearch. Something minimal like this should do the trick:
-	
-		#!/bin/bash
-		rm -f /var/run/elasticsearch/elasticsearch.pid
-		service elasticsearch start
-		tail -f /var/log/elasticsearch/elasticsearch.log
-
-An even more optimal way to distribute Elasticsearch, Logstash and Kibana across several nodes or hosts would be to extend the ELK image in the same way as outlined above to create separate images for Elasticsearch, Logstash, and Kibana, and run these three trimmed images on the appropriate nodes or hosts (e.g. Elasticsearch on several hosts, Logstash on a dedicated host, and Kibana on another dedicated host).
-
-In this case, you would also need to make sure that the configuration file for Logstash's Elasticsearch output plugin (`/etc/logstash/conf.d/30-output.conf`) points to a host belonging to the Elasticsearch cluster rather than `localhost` (which is the default in the ELK image, since Elasticsearch and Logstash run together), e.g.:
-
-	output {
-	  elasticsearch { hosts => ["elk-master.example.com"] }
-	}
+An even more optimal way to distribute Elasticsearch, Logstash and Kibana across several nodes or hosts would be to run only the required services on the appropriate nodes or hosts (e.g. Elasticsearch on several hosts, Logstash on a dedicated host, and Kibana on another dedicated host).
 
 ## Security considerations <a name="security-considerations"></a>
 
