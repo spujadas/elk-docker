@@ -32,11 +32,26 @@ trap _term SIGTERM
 rm -f /var/run/elasticsearch/elasticsearch.pid /var/run/logstash.pid \
   /var/run/kibana4.pid
 
-
 ## start services
+if [ -z "$ELASTICSEARCH_START" ]; then
+  ELASTICSEARCH_START=1
+fi
+if [ "$ELASTICSEARCH_START" -ne "1" ]; then
+  echo "ELASTICSEARCH_START is set to something different from 1, not starting..."
+else
+  service elasticsearch start
+fi
 
-service elasticsearch start
-service logstash start
+
+if [ -z "$LOGSTASH_START" ]; then
+  LOGSTASH_START=1
+fi
+if [ "$LOGSTASH_START" -ne "1" ]; then
+  echo "LOGSTASH_START is set to something different from 1, not starting..."
+else
+  service logstash start
+fi
+
 
 # wait for elasticsearch to start up
 # - https://github.com/elasticsearch/kibana/issues/3077
@@ -47,7 +62,15 @@ while [ ! "$(curl localhost:9200 2> /dev/null)" -a $counter -lt 30  ]; do
   echo "waiting for Elasticsearch to be up ($counter/30)"
 done
 
-service kibana start
+if [ -z "$KIBANA_START" ]; then
+  KIBANA_START=1
+fi
+if [ "$KIBANA_START" -ne "1" ]; then
+  echo "KIBANA_START is set to something different from 1, not starting..."
+else
+  service kibana start
+fi
+
 
 tail -f /var/log/elasticsearch/elasticsearch.log &
 wait
