@@ -56,7 +56,11 @@ else
     echo "waiting for Elasticsearch to be up ($counter/30)"
   done
 
-  OUTPUT_LOGFILES+="/var/log/elasticsearch/elasticsearch.log "
+  CLUSTER_NAME=$(grep -Po '(?<=^cluster.name: ).*' /etc/elasticsearch/elasticsearch.yml | sed -e 's/^[ \t]*//;s/[ \t]*$//')
+  if [ -z "$CLUSTER_NAME" ]; then
+     CLUSTER_NAME=elasticsearch
+  fi
+  OUTPUT_LOGFILES+="/var/log/elasticsearch/${CLUSTER_NAME}.log "
 fi
 
 # Logstash
