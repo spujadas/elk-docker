@@ -269,14 +269,36 @@ In the sample configuration file, make sure that you replace `elk` in `elk:5000`
 
 You'll also need to copy the `logstash-forwarder.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Lumberjack input plugin) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
 
-Lastly, you'll need to alter Logstash's Elasticsearch output plugin configuration (in `30-output.conf`) to remove the reference to the dynamic field `%{[@metadata][beat]}` in the `index` configuration option, as this field implies that Beat is being used to forward logs. A minimal configuration file such as the following would work fine:
+Lastly, you'll need to alter Logstash's Elasticsearch output plugin configuration (in `30-output.conf`) to remove the reference to the dynamic field `%{[@metadata][beat]}` in the `index` configuration option, as this field implies that a Beat is being used to forward logs. A minimal configuration file such as the following would work fine:
 
 	output {
 	  elasticsearch { hosts => ["localhost"] }
 	  stdout { codec => rubydebug }
 	}
 
+As a more complex example if you want Elasticsearch to process logs from both Beats (such as Filebeat) and Logstash forwarders, you could use an `if` condition to separate the incoming logs and use differentiated indices, e.g.: 
 
+	output {
+	  if [@metadata][beat] {
+	    elasticsearch {
+	      hosts => ["localhost"]
+	      sniffing => true
+	      manage_template => false
+	      index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}" 
+	      document_type => "%{[@metadata][type]}" 
+	    } 
+	  } else {
+	    elasticsearch { 
+	      hosts => ["localhost"]
+	      index => "other" 
+	      document_type => "stuff" 
+	    }
+	  }
+	  stdout { 
+	    codec => rubydebug 
+	  }
+	} 
+ 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.
 
 ### Linking a Docker container to the ELK container <a name="linking-containers"></a>
