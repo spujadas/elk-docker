@@ -18,7 +18,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 - [Extending the image](#extending-image)
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
 	- [Installing Logstash plugins](#installing-logstash-plugins)
-- [Storing log data](#storing-log-data)
+- [Persisting log data](#persisting-log-data)
 - [Setting up an Elasticsearch cluster](#elasticsearch-cluster)
 	- [Running Elasticsearch nodes on different hosts](#elasticsearch-cluster-different-hosts)
 	- [Running Elasticsearch nodes on a single host](#elasticsearch-cluster-single-host)
@@ -361,23 +361,22 @@ The following `Dockerfile` can be used to extend the base image and install the 
 
 See the *[Building the image](#building-image)* section above for instructions on building the new image. You can then run a container based on this image using the same command line as the one in the *[Usage](#usage)* section.
 
-## Storing log data <a name="storing-log-data"></a>
+## Persisting log data <a name="persisting-log-data"></a>
 
 In order to keep log data across container restarts, this image mounts `/var/lib/elasticsearch` — which is the directory that Elasticsearch stores its data in — as a volume.
 
-You may however want to use a dedicated data volume to store this log data, for instance to facilitate back-up and restore operations.
+You may however want to use a dedicated data volume to persist this log data, for instance to facilitate back-up and restore operations.
 
-One way to do this with the `docker` command-line tool is to first create a named container called `elk_data` with a bound Docker volume by using the `-v` option:
+One way to do this is to mount a Docker named volume using `docker`'s `-v` option, as in:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 -v /var/lib/elasticsearch --name elk_data sebp/elk
+	$ sudo docker run -p 5601:5601 -p 9200:9200  -p 5044:5044 -p 5000:5000 \
+		-v elk-data:/var/lib/elasticsearch --name elk sebp/elk
 
-You can now reuse the persistent volume from that container using the `--volumes-from` option:
+This command mounts the named volume `elk-data` to `/var/lib/elasticsearch` (and automatically creates the volume if it doesn't exist; you could also pre-create it manually using `docker volume create elk-data`).
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5000:5000 --volumes-from elk_data --name elk sebp/elk
+**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). You can keep track of existing volumes using `docker volume ls`.
 
-**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). As of this writing, managing Docker volumes can be a bit of a headache, so you might want to have a look at [docker-cleanup-volumes](https://github.com/chadoe/docker-cleanup-volumes), a shell script that deletes unused Docker volumes.
-
-See Docker's page on [Managing Data in Containers](https://docs.docker.com/userguide/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
+See Docker's page on [Managing Data in Containers](https://docs.docker.com/engine/userguide/containers/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
 
 ## Setting up an Elasticsearch cluster <a name="elasticsearch-cluster"></a>
 
