@@ -25,6 +25,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Optimising your Elasticsearch cluster](#optimising-elasticsearch-cluster)
 - [Security considerations](#security-considerations)
 	- [Notes on certificates](#certificates)
+	- [Disabling SSL/TLS](#disabling-ssl-tls)
 - [Troubleshooting](#troubleshooting)
 - [Reporting issues](#reporting-issues)
 - [References](#references)
@@ -213,7 +214,7 @@ Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, t
 
 In the sample configuration file, make sure that you replace `elk` in `elk:5044` with the hostname or IP address of the ELK-serving host.
 
-You'll also need to copy the `logstash-beats.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Beats input plugin) from the [source repository of the ELK image](https://github.com/spujadas/elk-docker) to `/etc/pki/tls/certs/logstash-beats.crt`.
+You'll also need to copy the `logstash-beats.crt` file (which contains the certificate authority's certificate – or server certificate as the certificate is self-signed – for Logstash's Beats input plugin; see [Security considerations](#security-considerations) for more information on certificates) from the [source repository of the ELK image](https://github.com/spujadas/elk-docker) to `/etc/pki/tls/certs/logstash-beats.crt`.
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
 
@@ -267,7 +268,7 @@ By default (see `/etc/init.d/logstash-forwarder` if you need to tweak anything):
 
 In the sample configuration file, make sure that you replace `elk` in `elk:5000` with the hostname or IP address of the ELK-serving host.
 
-You'll also need to copy the `logstash-forwarder.crt` file (which contains the CA certificate – or server certificate as the certificate is self-signed – for Logstash's Lumberjack input plugin) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
+You'll also need to copy the `logstash-forwarder.crt` file (which contains the certificate authority's certificate – or server certificate as the certificate is self-signed – for Logstash's Lumberjack input plugin; see [Security considerations](#security-considerations) for more information on certificates) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
 
 Lastly, you'll need to alter Logstash's Elasticsearch output plugin configuration (in `30-output.conf`) to remove the reference to the dynamic field `%{[@metadata][beat]}` in the `index` configuration option, as this field implies that a Beat is being used to forward logs. A minimal configuration file such as the following would work fine:
 
@@ -508,6 +509,8 @@ To harden this image, at the very least you would want to:
 - Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html)).
 - Generate a new self-signed authentication certificate for the Logstash input plugins (see [Notes on certificates](#certificates)) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
 
+If on the other hand you want to disable certificate-based server authentication (e.g. in a demo environment), see [Disabling SSL/TLS](#disabling-ssl-tls).
+
 ### Notes on certificates <a name="certificates"></a>
 
 Dummy server authentication certificates (`/etc/pki/tls/certs/logstash-*.crt`) and private keys (`/etc/pki/tls/private/logstash-*.key`) are included in the image.
@@ -537,6 +540,29 @@ To make Logstash use this certificate to authenticate itself to a Beats client, 
 - the private key file (`logstash-beats.key`) with `/etc/pki/tls/private/logstash-beats.key`,
 
 Additionally, remember to configure your Beats client to trust the newly created certificate using the `certificate_authorities` directive, as presented in [Forwarding logs with Filebeat](#forwarding-logs-filebeat).
+
+### Disabling SSL/TLS <a name="disabling-ssl-tls"></a>
+
+Certificate-based server authentication requires log-producing clients to trust the server's root certificate authority's certificate, which can be an unnecessary hassle in zero-criticality environments (e.g. demo environments, sandboxes).
+
+To disable certificate-based server authentication, remove all `ssl` and `ssl`-prefixed directives (e.g. `ssl_certificate`, `ssl_key`) in Logstash's input plugin configuration files.
+
+For instance, with the default configuration files in the image, replace the contents of `02-beats-input.conf` (for Beats emitters) with:
+
+	input {
+	  beats {
+	    port => 5044
+	  }
+	}
+
+Similarly, for Logstash forwarders, replace the contents of `01-lumberjack-input.conf` with:
+
+	input {
+	  lumberjack {
+	    port => 5000
+	    type => "logs"
+	  }
+	}
 
 ## Troubleshooting <a name="troubleshooting"></a>
 
