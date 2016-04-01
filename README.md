@@ -6,7 +6,9 @@ This Docker image provides a convenient centralised log server and log managemen
 
 The following tags are available:
 
-- `es221_l222_k442`, `latest`: Elasticsearch 2.2.1, Logstash 2.2.2, and Kibana 4.4.2.
+- `es230_l230_k450`, `latest`: Elasticsearch 2.3.0, Logstash 2.3.0, and Kibana 4.5.0.
+
+- `es221_l222_k442`: Elasticsearch 2.2.1, Logstash 2.2.2, and Kibana 4.4.2.
 
 - `es220_l222_k441`: Elasticsearch 2.2.0, Logstash 2.2.2, and Kibana 4.4.1.
 
