@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 2.3.0, Logstash 2.3.0, Kibana 4.5.0
+# Elasticsearch 2.3.1, Logstash 2.3.1, Kibana 4.5.0
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -9,7 +9,7 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2016-03-04
+ENV REFRESHED_AT 2016-04-07
 
 ###############################################################################
 #                                INSTALLATION
@@ -25,7 +25,7 @@ RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable m
 
 RUN apt-get update -qq \
  && apt-get install -qqy \
-		elasticsearch=2.3.0 \
+		elasticsearch=2.3.1 \
 		openjdk-7-jdk \
  && apt-get clean
 
@@ -33,7 +33,7 @@ RUN apt-get update -qq \
 ### install Logstash
 
 ENV LOGSTASH_HOME /opt/logstash
-ENV LOGSTASH_PACKAGE logstash-2.3.0.tar.gz
+ENV LOGSTASH_PACKAGE logstash-2.3.1.tar.gz
 
 RUN mkdir ${LOGSTASH_HOME} \
  && curl -O https://download.elasticsearch.org/logstash/logstash/${LOGSTASH_PACKAGE} \
