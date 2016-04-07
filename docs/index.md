@@ -15,7 +15,8 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
 	- [Linking a Docker container to the ELK container](#linking-containers)
 - [Building the image](#building-image)
-- [Extending the image](#extending-image)
+- [Tweaking the image](#tweaking-image)
+	- [Updating Logstash's configuration](#updating-logstash-configuration)
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
 	- [Installing Logstash plugins](#installing-logstash-plugins)
 - [Persisting log data](#persisting-log-data)
@@ -344,17 +345,39 @@ To build the Docker image from the source files, first clone the [Git repository
 - If you're using Compose then run `sudo docker-compose build elk`, which uses the `docker-compose.yml` file from the source repository to build the image. You can then run the built image with `sudo docker-compose up`.
 
 
-## Extending the image <a name="extending-image"></a>
+## Tweaking the image <a name="tweaking-image"></a>
 
-To extend the image, you can either fork the source Git repository and hack away, or – more in the spirit of the Docker philosophy – use the image as a base image and build on it, adding files (e.g. configuration files to process logs sent by log-producing applications, plugins for Elasticsearch) and overwriting files (e.g. configuration files, certificate and private key files) as required.
+There are several approaches to tweaking the image:
 
-To create a new image based on this base image, you want your `Dockerfile` to include:
+- Fork the source Git repository and hack away.
 
-	FROM sebp/elk
+- More in the spirit of the Docker philosophy, use the image as a base image and extend it, adding files (e.g. configuration files to process logs sent by log-producing applications, plugins for Elasticsearch) and overwriting files (e.g. configuration files, certificate and private key files) as required. See Docker's [Dockerfile Reference page](https://docs.docker.com/reference/builder/) for more information on writing a `Dockerfile`.
 
-followed by instructions to extend the image (see Docker's [Dockerfile Reference page](https://docs.docker.com/reference/builder/) for more information).
+- Replace existing files by bind-mounting local files to files in the container. See Docker's [Manage data in containers](https://docs.docker.com/engine/userguide/containers/dockervolumes/) page for more information on volumes in general and bind-mounting in particular.
 
 The next few subsections present some typical use cases.
+
+### Updating Logstash's configuration <a name="updating-logstash-configuration"></a>
+
+The image contains several configuration files for Logstash (e.g. `01-lumberjack-input.conf`, `02-beats-input.conf`), all located in `/etc/logstash/conf.d`.
+
+To modify an existing configuration file, you can bind-mount a local configuration file to a configuration file within the container at runtime. For instance, if you want to replace the image's `30-output.conf` Logstash configuration file with your local file `/path/to/your-30-output.conf`, then you would add the following `-v` option to your `docker` command line:
+
+	$ sudo docker run ... \
+		-v /path/to/your-30-output.conf:/etc/logstash/conf.d/30-output.conf \
+		...
+
+To create your own image with updated or additional configuration files, you can create a `Dockerfile` that extends the original image, with contents such as the following:
+
+	FROM seb/elk
+	
+	# overwrite existing file
+	ADD /path/to/your-30-output.conf /etc/logstash/conf.d/30-output.conf
+	
+	# add new file
+	ADD /path/to/new-12-some-filter.conf /etc/logstash/conf.d/12-some-filter.conf
+
+Then build the extended image using the `docker build` syntax. 
 
 ### Installing Elasticsearch plugins <a name="installing-elasticsearch-plugins"></a>
 
