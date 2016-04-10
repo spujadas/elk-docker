@@ -10,6 +10,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Running the container using Docker Compose](#running-with-docker-compose)
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
 	- [Starting services selectively](#selective-services)
+	- [Overriding start-up variables](#overriding-variables)
 - [Forwarding logs](#forwarding-logs)
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
 	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
@@ -174,6 +175,19 @@ Note that if the container is to be started with Elasticsearch _disabled_, then:
 		}
 
 - Similarly, if Kibana is enabled, then Kibana's `kibana.yml` configuration file must first be updated to make the `elasticsearch.url` setting (default value: `"http://localhost:9200"`) point to a running instance of Elasticsearch.
+
+### Overriding start-up variables <a name="overriding-variables"></a>
+
+The following environment variables can be used to override the defaults used to start up the services:
+
+- `LS_HEAP_SIZE`: Logstash heap size (default: `"500m"`)
+
+- `LS_OPTS`: Logstash options (default: `"--auto-reload"`)
+ 
+As an illustration, the following command starts the stack, running Logstash with a 1GB heap size and the configuration auto-reload disabled:
+
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it \
+		-e LS_HEAP_SIZE="1g" -e LS_OPTS="--no-auto-reload" --name elk sebp/elk
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 

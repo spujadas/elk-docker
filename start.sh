@@ -70,6 +70,16 @@ fi
 if [ "$LOGSTASH_START" -ne "1" ]; then
   echo "LOGSTASH_START is set to something different from 1, not starting..."
 else
+  # override LS_HEAP_SIZE variable if set
+  if [ ! -z "$LS_HEAP_SIZE" ]; then
+    sed -i -e 's#^LS_HEAP_SIZE=.*$#LS_HEAP_SIZE='$LS_HEAP_SIZE'#' /etc/init.d/logstash
+  fi
+
+  # override LS_OPTS variable if set
+  if [ ! -z "$LS_OPTS" ]; then
+    sed -i -e 's#^LS_OPTS=.*$#LS_OPTS='$LS_OPTS'#' /etc/init.d/logstash
+  fi
+
   service logstash start
   OUTPUT_LOGFILES+="/var/log/logstash/logstash.log "
 fi
