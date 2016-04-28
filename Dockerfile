@@ -15,25 +15,45 @@ ENV REFRESHED_AT 2016-04-07
 #                                INSTALLATION
 ###############################################################################
 
+### install prerequisites (cURL, gosu)
+
+ENV GOSU_VERSION 1.8
+
+RUN set -x \
+ && apt-get update -qq \
+ && apt-get install -qqy --no-install-recommends ca-certificates curl \
+ && rm -rf /var/lib/apt/lists/* \
+ && curl -L -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture)" \
+ && curl -L -o /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$(dpkg --print-architecture).asc" \
+ && export GNUPGHOME="$(mktemp -d)" \
+ && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+ && gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu \
+ && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
+ && chmod +x /usr/local/bin/gosu \
+ && gosu nobody true \
+ && apt-get clean \
+ && set +x
+
+
 ### install Elasticsearch
 
-RUN apt-get update -qq \
- && apt-get install -qqy curl
+ENV ES_VERSION 2.3.1
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable main > /etc/apt/sources.list.d/elasticsearch-2.x.list
 
 RUN apt-get update -qq \
  && apt-get install -qqy \
-		elasticsearch=2.3.1 \
+		elasticsearch=${ES_VERSION} \
 		openjdk-7-jdk \
  && apt-get clean
 
 
 ### install Logstash
 
+ENV LOGSTASH_VERSION 2.3.1
 ENV LOGSTASH_HOME /opt/logstash
-ENV LOGSTASH_PACKAGE logstash-2.3.1.tar.gz
+ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
 
 RUN mkdir ${LOGSTASH_HOME} \
  && curl -O https://download.elasticsearch.org/logstash/logstash/${LOGSTASH_PACKAGE} \
@@ -51,8 +71,9 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
 
 ### install Kibana
 
+ENV KIBANA_VERSION 4.5.0
 ENV KIBANA_HOME /opt/kibana
-ENV KIBANA_PACKAGE kibana-4.5.0-linux-x64.tar.gz
+ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-linux-x64.tar.gz
 
 RUN mkdir ${KIBANA_HOME} \
  && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \

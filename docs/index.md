@@ -20,6 +20,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Updating Logstash's configuration](#updating-logstash-configuration)
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
 	- [Installing Logstash plugins](#installing-logstash-plugins)
+	- [Installing Kibana plugins](#installing-kibana-plugins)
 - [Persisting log data](#persisting-log-data)
 - [Setting up an Elasticsearch cluster](#elasticsearch-cluster)
 	- [Running Elasticsearch nodes on different hosts](#elasticsearch-cluster-different-hosts)
@@ -358,16 +359,15 @@ To build the Docker image from the source files, first clone the [Git repository
 
 - If you're using Compose then run `sudo docker-compose build elk`, which uses the `docker-compose.yml` file from the source repository to build the image. You can then run the built image with `sudo docker-compose up`.
 
-
 ## Tweaking the image <a name="tweaking-image"></a>
 
 There are several approaches to tweaking the image:
 
-- Fork the source Git repository and hack away.
-
-- More in the spirit of the Docker philosophy, use the image as a base image and extend it, adding files (e.g. configuration files to process logs sent by log-producing applications, plugins for Elasticsearch) and overwriting files (e.g. configuration files, certificate and private key files) as required. See Docker's [Dockerfile Reference page](https://docs.docker.com/reference/builder/) for more information on writing a `Dockerfile`.
+- Use the image as a base image and extend it, adding files (e.g. configuration files to process logs sent by log-producing applications, plugins for Elasticsearch) and overwriting files (e.g. configuration files, certificate and private key files) as required. See Docker's [Dockerfile Reference page](https://docs.docker.com/reference/builder/) for more information on writing a `Dockerfile`.
 
 - Replace existing files by bind-mounting local files to files in the container. See Docker's [Manage data in containers](https://docs.docker.com/engine/userguide/containers/dockervolumes/) page for more information on volumes in general and bind-mounting in particular.
+
+- Fork the source Git repository and hack away.
 
 The next few subsections present some typical use cases.
 
@@ -397,6 +397,8 @@ Then build the extended image using the `docker build` syntax.
 
 Elasticsearch's home directory in the image is `/usr/share/elasticsearch`, its [plugin management script](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-plugins.html) (`plugin`) resides in the `bin` subdirectory, and plugins are installed in `plugins`.
 
+Elasticsearch runs as the user `elasticsearch`. To avoid issues with permissions, it is therefore recommended to install Elasticsearch plugins as `elasticsearch`, using the `gosu` command (see below for an example, and references for further details).  
+
 A `Dockerfile` like the following will extend the base image and install Elastic HQ, a management and monitoring plugin for Elasticsearch, using `plugin`.
 
 	FROM sebp/elk
@@ -404,7 +406,7 @@ A `Dockerfile` like the following will extend the base image and install Elastic
 	ENV ES_HOME /usr/share/elasticsearch
 	WORKDIR ${ES_HOME}
 
-	RUN bin/plugin install royrusso/elasticsearch-HQ
+	RUN gosu elasticsearch bin/plugin install royrusso/elasticsearch-HQ
 
 You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image. The Elastic HQ interface will be accessible at `http://<your-host>:9200/_plugin/hq/` (e.g. [http://localhost:9200/_plugin/hq/](http://localhost:9200/_plugin/hq/) for a local native instance of Docker).
 
@@ -412,14 +414,31 @@ You can now build the new image (see the *[Building the image](#building-image)*
 
 The name of Logstash's home directory in the image is stored in the `LOGSTASH_HOME` environment variable (which is set to `/opt/logstash` in the base image). Logstash's plugin management script (`plugin`) is located in the `bin` subdirectory.
 
+Logstash runs as the user `logstash`. To avoid issues with permissions, it is therefore recommended to install Kibana plugins as `logstash`, using the `gosu` command (see below for an example, and references for further details).  
+
 The following `Dockerfile` can be used to extend the base image and install the [RSS input plugin](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-rss.html):
 
 	FROM sebp/elk
 
 	WORKDIR ${LOGSTASH_HOME}
-	RUN bin/plugin install logstash-input-rss
+	RUN gosu logstash bin/logstash-plugin install logstash-input-rss
 
 See the *[Building the image](#building-image)* section above for instructions on building the new image. You can then run a container based on this image using the same command line as the one in the *[Usage](#usage)* section.
+
+### Installing Kibana plugins <a name="installing-kibana-plugins"></a>
+
+The name of Kibana's home directory in the image is stored in the `KIBANA_HOME` environment variable (which is set to `/opt/kibana` in the base image). Kibana's plugin management script (`plugin`) is located in the `bin` subdirectory, and plugins are installed in `installedPlugins`.
+
+Kibana runs as the user `kibana`. To avoid issues with permissions, it is therefore recommended to install Kibana plugins as `kibana`, using the `gosu` command (see below for an example, and references for further details).  
+
+The following `Dockerfile` can be used to extend the base image and install the latest version of the [Sense plugin](https://www.elastic.co/guide/en/sense/current/index.html), a handy console for interacting with the REST API of Elasticsearch:
+
+	FROM sebp/elk
+
+	WORKDIR ${KIBANA_HOME}
+	RUN gosu kibana bin/kibana plugin -i elastic/sense
+
+See the *[Building the image](#building-image)* section above for instructions on building the new image. You can then run a container based on this image using the same command line as the one in the *[Usage](#usage)* section. The Sense interface will be accessible at `http://<your-host>:5601/apss/sense` (e.g. [http://localhost:5601/app/sense](http://localhost:5601/app/sense) for a local native instance of Docker).
 
 ## Persisting log data <a name="persisting-log-data"></a>
 
@@ -637,6 +656,7 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 	- [Logstash Reference](https://www.elastic.co/guide/en/logstash/current/index.html)
 	- [Kibana Reference](https://www.elastic.co/guide/en/kibana/current/index.html)
 	- [Filebeat Reference](https://www.elastic.co/guide/en/beats/filebeat/current/index.html)
+- [gosu, simple Go-based setuid+setgid+setgroups+exec](https://github.com/tianon/gosu), a convenient alternative to `USER` in Dockerfiles (see [Best practices for writing Dockerfiles](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#user))
 
 ## About <a name="about"></a>
 
