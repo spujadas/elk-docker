@@ -22,7 +22,7 @@ The following tags are available:
 
 ### Documentation
 
-See the [ELK Docker image documentation web page](http://elk-docker.readthedocs.org/) for complete instructions on how to use this image.
+See the [ELK Docker image documentation web page](http://elk-docker.readthedocs.io/) for complete instructions on how to use this image.
 
 ### Docker Hub
 
