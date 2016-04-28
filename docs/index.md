@@ -583,14 +583,21 @@ If you cannot use a single-part domain name, then you could consider:
 
 - Adding a single-part hostname (e.g. `elk`) to your client's `/etc/hosts` file.    
 
-The following commands will generate a private key and a 10-year self-signed certificate issued to a server with hostname `elk` for the Beats input plugin
+The following commands will generate a private key and a 10-year self-signed certificate issued to a server with hostname `elk` for the Beats input plugin:
 
 	$ cd /etc/pki/tls
 	$ sudo openssl req -x509 -batch -nodes -subj "/CN=elk/" \
 		-days 3650 -newkey rsa:2048 \
 		-keyout private/logstash-beats.key -out certs/logstash-beats.crt
 
-To make Logstash use this certificate to authenticate itself to a Beats client, extend the ELK image to overwrite (e.g. using the `Dockerfile` directive `ADD`):
+As another example, when running a non-predefined number of containers concurrently in a cluster with hostnames _directly_ under the `.mydomain.com` domain (e.g. `elk1.mydomain.com`, `elk2.mydomain.com`, etc.; _not_ `elk1.subdomain.mydomain.com`, `elk2.othersubdomain.mydomain.com` etc.), you could create a certificate assigned to the wildcard hostname `*.example.com` by using the following command (all other parameters are identical to the ones in the previous example).   
+
+	$ cd /etc/pki/tls
+	$ sudo openssl req -x509 -batch -nodes -subj "/CN=*.example.com/" \
+		-days 3650 -newkey rsa:2048 \
+		-keyout private/logstash-beats.key -out certs/logstash-beats.crt
+
+To make Logstash use the generated certificate to authenticate to a Beats client, extend the ELK image to overwrite (e.g. using the `Dockerfile` directive `ADD`):
 
 - the certificate file (`logstash-beats.crt`) with `/etc/pki/tls/certs/logstash-beats.crt`.
 - the private key file (`logstash-beats.key`) with `/etc/pki/tls/private/logstash-beats.key`,
