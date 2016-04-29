@@ -119,6 +119,16 @@ ADD ./nginx.pattern ${LOGSTASH_HOME}/patterns/nginx
 RUN chown -R logstash:logstash ${LOGSTASH_HOME}/patterns
 
 
+### configure logrotate
+
+ADD ./elasticsearch-logrotate /etc/logrotate.d/elasticsearch
+ADD ./logstash-logrotate /etc/logrotate.d/logstash
+ADD ./kibana-logrotate /etc/logrotate.d/kibana
+RUN chmod 644 /etc/logrotate.d/elasticsearch \
+ && chmod 644 /etc/logrotate.d/logstash \
+ && chmod 644 /etc/logrotate.d/kibana
+
+
 ###############################################################################
 #                                   START
 ###############################################################################
