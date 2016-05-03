@@ -44,6 +44,17 @@ fi
 if [ "$ELASTICSEARCH_START" -ne "1" ]; then
   echo "ELASTICSEARCH_START is set to something different from 1, not starting..."
 else
+  # override ES_HEAP_SIZE variable if set
+  if [ ! -z "$ES_HEAP_SIZE" ]; then
+    awk -v LINE="ES_HEAP_SIZE=\"$ES_HEAP_SIZE\"" '{ sub(/^#?ES_HEAP_SIZE=.*/, LINE); print; }' /etc/default/elasticsearch \
+        > /etc/default/elasticsearch.new && mv /etc/default/elasticsearch.new /etc/default/elasticsearch
+  fi
+  # override ES_JAVA_OPTS variable if set
+  if [ ! -z "$ES_JAVA_OPTS" ]; then
+    awk -v LINE="ES_JAVA_OPTS=\"$ES_JAVA_OPTS\"" '{ sub(/^#?ES_JAVA_OPTS=.*/, LINE); print; }' /etc/default/elasticsearch \
+        > /etc/default/elasticsearch.new && mv /etc/default/elasticsearch.new /etc/default/elasticsearch
+  fi
+
   service elasticsearch start
 
   # wait for Elasticsearch to start up before either starting Kibana (if enabled)
@@ -72,12 +83,14 @@ if [ "$LOGSTASH_START" -ne "1" ]; then
 else
   # override LS_HEAP_SIZE variable if set
   if [ ! -z "$LS_HEAP_SIZE" ]; then
-    sed -i -e 's#^LS_HEAP_SIZE=.*$#LS_HEAP_SIZE='$LS_HEAP_SIZE'#' /etc/init.d/logstash
+    awk -v LINE="LS_HEAP_SIZE=\"$LS_HEAP_SIZE\"" '{ sub(/^LS_HEAP_SIZE=.*/, LINE); print; }' /etc/init.d/logstash \
+        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash
   fi
 
   # override LS_OPTS variable if set
   if [ ! -z "$LS_OPTS" ]; then
-    sed -i -e 's#^LS_OPTS=.*$#LS_OPTS='$LS_OPTS'#' /etc/init.d/logstash
+    awk -v LINE="LS_OPTS=\"$LS_OPTS\"" '{ sub(/^LS_OPTS=.*/, LINE); print; }' /etc/init.d/logstash \
+        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash
   fi
 
   service logstash start
