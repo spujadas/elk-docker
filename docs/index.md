@@ -202,7 +202,9 @@ The following environment variables can be used to override the defaults used to
 
 - `LS_HEAP_SIZE`: Logstash heap size (default: `"500m"`)
 
-- `LS_OPTS`: Logstash options (default: `"--auto-reload"`)
+- `LS_OPTS`: Logstash options (default: `"--auto-reload"` in images with tags `es231_l231_k450` and `es232_l232_k450`, `""` in `latest`)
+
+	**Warning** – As Logstash's auto-reload feature appears to create a resource leak (see [https://github.com/elastic/logstash/issues/5235](https://github.com/elastic/logstash/issues/5235)), the default `--auto-reload` option has been removed in the `latest` image at the time of writing (see [https://github.com/spujadas/elk-docker/issues/41](https://github.com/spujadas/elk-docker/issues/41)). For users of images with tags `es231_l231_k450` and `es232_l232_k450`, it is strongly recommended to override Logstash's options to disable the auto-reload feature by setting the `LS_OPTS` environment to `--no-auto-reload`. Future versions of the image may re-enable the auto-reload feature once the memory leak issue is fixed. 
  
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size, Logstash with a 1GB heap size and Logstash's configuration auto-reload disabled:
 
