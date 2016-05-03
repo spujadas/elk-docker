@@ -192,14 +192,23 @@ Note that if the container is to be started with Elasticsearch _disabled_, then:
 
 The following environment variables can be used to override the defaults used to start up the services:
 
+- `ES_HEAP_SIZE`: Elasticsearch heap size (default is 256MB min, 1G max)
+
+	Specifying a heap size – e.g. `2g` – will set both the min and max to the provided value. To set the min and max values separately, see the `ES_JAVA_OPTS` below. 
+
+- `ES_JAVA_OPTS`: additional Java options for Elasticsearch (default: `""`)
+ 
+	For instance, to set the min and max heap size to 512MB and 2G, set this environment variable to `-Xms512m -Xmx2g`.
+
 - `LS_HEAP_SIZE`: Logstash heap size (default: `"500m"`)
 
 - `LS_OPTS`: Logstash options (default: `"--auto-reload"`)
  
-As an illustration, the following command starts the stack, running Logstash with a 1GB heap size and the configuration auto-reload disabled:
+As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size, Logstash with a 1GB heap size and Logstash's configuration auto-reload disabled:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it \
-		-e LS_HEAP_SIZE="1g" -e LS_OPTS="--no-auto-reload" --name elk sebp/elk
+		-e ES_HEAP_SIZE="2g" -e LS_HEAP_SIZE="1g" -e LS_OPTS="--no-auto-reload" \
+		--name elk sebp/elk
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 

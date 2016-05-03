@@ -46,11 +46,13 @@ if [ "$ELASTICSEARCH_START" -ne "1" ]; then
 else
   # override ES_HEAP_SIZE variable if set
   if [ ! -z "$ES_HEAP_SIZE" ]; then
-    sed -i -e 's/^#ES_HEAP_SIZE=[0-9].*$/ES_HEAP_SIZE='$ES_HEAP_SIZE'/' /etc/default/elasticsearch
+    awk -v LINE="ES_HEAP_SIZE=\"$ES_HEAP_SIZE\"" '{ sub(/^#?ES_HEAP_SIZE=.*/, LINE); print; }' /etc/default/elasticsearch \
+        > /etc/default/elasticsearch.new && mv /etc/default/elasticsearch.new /etc/default/elasticsearch
   fi
-  # override ES_MAX_MEM variable if set
-  if [ ! -z "$ES_MAX_MEM" ]; then
-    sed -i -e 's#^    ES_MAX_MEM=[0-9].*$#    ES_MAX_MEM='$ES_MAX_MEM'#' /usr/share/elasticsearch/bin/elasticsearch.in.sh
+  # override ES_JAVA_OPTS variable if set
+  if [ ! -z "$ES_JAVA_OPTS" ]; then
+    awk -v LINE="ES_JAVA_OPTS=\"$ES_JAVA_OPTS\"" '{ sub(/^#?ES_JAVA_OPTS=.*/, LINE); print; }' /etc/default/elasticsearch \
+        > /etc/default/elasticsearch.new && mv /etc/default/elasticsearch.new /etc/default/elasticsearch
   fi
 
   service elasticsearch start
@@ -81,12 +83,14 @@ if [ "$LOGSTASH_START" -ne "1" ]; then
 else
   # override LS_HEAP_SIZE variable if set
   if [ ! -z "$LS_HEAP_SIZE" ]; then
-    sed -i -e 's#^LS_HEAP_SIZE=.*$#LS_HEAP_SIZE='$LS_HEAP_SIZE'#' /etc/init.d/logstash
+    awk -v LINE="LS_HEAP_SIZE=\"$LS_HEAP_SIZE\"" '{ sub(/^LS_HEAP_SIZE=.*/, LINE); print; }' /etc/init.d/logstash \
+        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash
   fi
 
   # override LS_OPTS variable if set
   if [ ! -z "$LS_OPTS" ]; then
-    sed -i -e 's#^LS_OPTS=.*$#LS_OPTS='$LS_OPTS'#' /etc/init.d/logstash
+    awk -v LINE="LS_OPTS=\"$LS_OPTS\"" '{ sub(/^LS_OPTS=.*/, LINE); print; }' /etc/init.d/logstash \
+        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash
   fi
 
   service logstash start
