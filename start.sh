@@ -84,13 +84,13 @@ else
   # override LS_HEAP_SIZE variable if set
   if [ ! -z "$LS_HEAP_SIZE" ]; then
     awk -v LINE="LS_HEAP_SIZE=\"$LS_HEAP_SIZE\"" '{ sub(/^LS_HEAP_SIZE=.*/, LINE); print; }' /etc/init.d/logstash \
-        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash
+        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash && chmod +x /etc/init.d/logstash
   fi
 
   # override LS_OPTS variable if set
   if [ ! -z "$LS_OPTS" ]; then
     awk -v LINE="LS_OPTS=\"$LS_OPTS\"" '{ sub(/^LS_OPTS=.*/, LINE); print; }' /etc/init.d/logstash \
-        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash
+        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash && chmod +x /etc/init.d/logstash
   fi
 
   service logstash start
