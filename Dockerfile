@@ -45,8 +45,8 @@ RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable m
 
 RUN apt-get update -qq \
  && apt-get install -qqy \
-		elasticsearch=${ES_VERSION} \
-		openjdk-7-jdk \
+    elasticsearch=${ES_VERSION} \
+    openjdk-7-jdk \
  && apt-get clean
 
 
@@ -111,6 +111,7 @@ ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
 # filters
 ADD ./01-lumberjack-input.conf /etc/logstash/conf.d/01-lumberjack-input.conf
 ADD ./02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
+ADD ./03-gelf-input.conf /etc/logstash/conf.d/03-gelf-input.conf
 ADD ./10-syslog.conf /etc/logstash/conf.d/10-syslog.conf
 ADD ./11-nginx.conf /etc/logstash/conf.d/11-nginx.conf
 ADD ./30-output.conf /etc/logstash/conf.d/30-output.conf
