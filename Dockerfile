@@ -39,6 +39,7 @@ RUN set -x \
 ### install Elasticsearch
 
 ENV ES_VERSION 2.3.3
+ENV ES_HOME /usr/share/elasticsearch
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable main > /etc/apt/sources.list.d/elasticsearch-2.x.list
@@ -84,6 +85,9 @@ RUN mkdir ${KIBANA_HOME} \
  && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -g kibana kibana \
  && mkdir -p /var/log/kibana \
  && chown -R kibana:kibana ${KIBANA_HOME} /var/log/kibana
+
+WORKDIR ${KIBANA_HOME}
+RUN gosu kibana bin/kibana plugin --install elastic/sense
 
 ADD ./kibana-init /etc/init.d/kibana
 RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
@@ -132,13 +136,21 @@ RUN chmod 644 /etc/logrotate.d/elasticsearch \
 
 
 ###############################################################################
+#                           ELASTICSEARCH PLUGINS
+###############################################################################
+
+WORKDIR ${ES_HOME}
+RUN gosu elasticsearch bin/plugin install royrusso/elasticsearch-HQ
+
+
+###############################################################################
 #                                   START
 ###############################################################################
 
 ADD ./start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-EXPOSE 5601 9200 9300 5000 5044
+EXPOSE 5601 9200 9300 5000 5044 12202
 VOLUME /var/lib/elasticsearch
 
 CMD [ "/usr/local/bin/start.sh" ]
