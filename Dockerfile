@@ -19,6 +19,7 @@ ENV REFRESHED_AT 2016-07-10
 
 ENV GOSU_VERSION 1.8
 
+ARG DEBIAN_FRONTEND=noninteractive
 RUN set -x \
  && apt-get update -qq \
  && apt-get install -qqy --no-install-recommends ca-certificates curl \
