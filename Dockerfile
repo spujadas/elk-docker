@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 2.3.3, Logstash 2.3.2, Kibana 4.5.1
+# Elasticsearch 2.3.4, Logstash 2.3.4, Kibana 4.5.2
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -9,7 +9,7 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2016-04-07
+ENV REFRESHED_AT 2016-07-10
 
 ###############################################################################
 #                                INSTALLATION
@@ -37,7 +37,7 @@ RUN set -x \
 
 ### install Elasticsearch
 
-ENV ES_VERSION 2.3.3
+ENV ES_VERSION 2.3.4
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable main > /etc/apt/sources.list.d/elasticsearch-2.x.list
@@ -45,13 +45,13 @@ RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable m
 RUN apt-get update -qq \
  && apt-get install -qqy \
 		elasticsearch=${ES_VERSION} \
-		openjdk-7-jdk \
+		openjdk-8-jdk \
  && apt-get clean
 
 
 ### install Logstash
 
-ENV LOGSTASH_VERSION 2.3.2
+ENV LOGSTASH_VERSION 2.3.4
 ENV LOGSTASH_HOME /opt/logstash
 ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
 
@@ -71,7 +71,7 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
 
 ### install Kibana
 
-ENV KIBANA_VERSION 4.5.1
+ENV KIBANA_VERSION 4.5.2
 ENV KIBANA_HOME /opt/kibana
 ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-linux-x64.tar.gz
 
