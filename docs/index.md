@@ -32,6 +32,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Disabling SSL/TLS](#disabling-ssl-tls)
 - [Troubleshooting](#troubleshooting)
 - [Reporting issues](#reporting-issues)
+- [Breaking changes](#breaking-changes)
 - [References](#references)
 - [About](#about)
 
@@ -202,9 +203,7 @@ The following environment variables can be used to override the defaults used to
 
 - `LS_HEAP_SIZE`: Logstash heap size (default: `"500m"`)
 
-- `LS_OPTS`: Logstash options (default: `"--auto-reload"` in images with tags `es231_l231_k450` and `es232_l232_k450`, `""` in `latest`)
-
-	**Warning** – As Logstash's auto-reload feature (introduced in version 2.3) creates a resource leak in early 2.3.x versions (see [https://github.com/elastic/logstash/issues/5235](https://github.com/elastic/logstash/issues/5235)), the default `--auto-reload` option has been removed in the `es233_l232_k451` image at the time (see [https://github.com/spujadas/elk-docker/issues/41](https://github.com/spujadas/elk-docker/issues/41)). For users of images with tags `es231_l231_k450` and `es232_l232_k450`, it is strongly recommended to override Logstash's options to disable the auto-reload feature by setting the `LS_OPTS` environment to `--no-auto-reload`. Future versions of the image may re-enable the auto-reload feature once a stable version of Logstash is released with the memory leak issue fixed (should be version 2.3.3). 
+- `LS_OPTS`: Logstash options (default: `"--auto-reload"` in images with tags `es231_l231_k450` and `es232_l232_k450`, `""` in `latest`; see [Breaking changes](#breaking-changes))
  
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size, Logstash with a 1GB heap size and Logstash's configuration auto-reload disabled:
 
@@ -669,6 +668,8 @@ If this still seems to fail, then you should have a look at:
 
 	Note that ELK's logs are rotated daily and are deleted after a week, using logrotate. You can change this behaviour by overwriting the `elasticsearch`, `logstash` and `kibana` files in `/etc/logrotate.d`.  
 
+For non-Docker-related issues with Elasticsearch, Kibana, and Elasticsearch, make sure you have a look at the [Elastic forums](https://discuss.elastic.co/).
+
 ## Reporting issues <a name="reporting-issues"></a>
 
 You can report issues with this image using [GitHub's issue tracker](https://github.com/spujadas/elk-docker/issues) (please avoid raising issues as comments on Docker Hub, if only for the fact that the notification system is broken at the time of writing so there's a fair chance that I won't see it for a while).
@@ -676,6 +677,43 @@ You can report issues with this image using [GitHub's issue tracker](https://git
 Bearing in mind that the first thing I'll need to do is reproduce your issue, please provide as much relevant information (e.g. logs, configuration files, what you were expecting and what you got instead, any troubleshooting steps that you took, what _is_ working) as possible for me to do that.
 
 [Pull requests](https://github.com/spujadas/elk-docker/pulls) are also welcome if you have found an issue and can solve it.
+
+## Breaking changes <a name="breaking changes"></a>
+
+Here is the list of breaking changes that may cause images built on later versions of the ELK image (rather tha
+
+- **Version 5** (advance warning)
+
+	*Applies to tags: to be announced.*
+
+	Breaking changes are to be expected in the upcoming version 5 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/master/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/master/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/master/releasenotes.html).
+
+- **Logstash forwarder** (advance warning)
+
+	*Applies to tags: same as for version 5 (see above).*
+
+	The use of Logstash forwarder is deprecated, its Logstash input plugin configuration will soon be removed, and port 5000 will no longer be exposed.
+
+- **Java 8**
+
+	*Applies to tags: `es234_l234_k452` and later.*
+
+	This image initially used Oracle JDK 7, which is [no longer updated by Oracle](http://www.oracle.com/technetwork/java/javase/eol-135779.html), and no longer available as a Ubuntu package.
+
+	As from tag `es234_l234_k452`, the image uses Oracle JDK 8. This may have unintended side effects on plugins that rely on Java.
+
+- **Logstash configuration auto-reload**
+
+	*Applies to tags: `es231_l231_k450`, `es232_l232_k450`.*
+
+	Logstash's configuration auto-reload option was introduced in Logstash 2.3 and enabled in the images with tags `es231_l231_k450` and `es232_l232_k450`.
+
+	As this feature created a resource leak prior to Logstash 2.3.3 (see [https://github.com/elastic/logstash/issues/5235](https://github.com/elastic/logstash/issues/5235)), the `--auto-reload` option was removed as from the `es233_l232_k451`-tagged image (see [https://github.com/spujadas/elk-docker/issues/41](https://github.com/spujadas/elk-docker/issues/41)).
+
+	Users of images with tags `es231_l231_k450` and `es232_l232_k450` are strongly recommended:
+
+	- To either override Logstash's options to disable the auto-reload feature by setting the `LS_OPTS` environment to `--no-auto-reload` if this feature is not needed.
+	- Or to use a later version of the image (from `es234_l234_k452` onwards) and pass `--auto-reload` to `LS_OPTS` if the feature is needed.
 
 ## References <a name="references"></a>
 
