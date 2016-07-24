@@ -71,7 +71,7 @@ This command publishes the following ports, which are needed for proper operatio
 - 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs with Filebeat](#forwarding-logs-filebeat)* section).
 - 5000 (Logstash Lumberjack interface, receives logs from Logstash forwarders – see the *[Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)* section).
 
-**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it. This transport interface is notably used by [Elasticsearch's Java client API](https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/index.html).
+**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it. This transport interface is notably used by [Elasticsearch's Java client API](https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/index.html), and to run Elasticsearch in a cluster.
 
 The figure below shows how the pieces fit together.
 
@@ -486,7 +486,18 @@ For more (non-Docker-specific) information on setting up an Elasticsearch cluste
 
 ### Running Elasticsearch nodes on different hosts <a name="elasticsearch-cluster-different-hosts"></a>
 
-To run nodes on different hosts, you'll need to update Elasticsearch's `/etc/elasticsearch/elasticsearch.yml` file in the Docker image to configure the [zen discovery module](http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html) as needed for the nodes to find each other. Specifically, you need to add a `discovery.zen.ping.unicast.hosts` directive to point to the IP addresses or hostnames of hosts that should be polled to perform discovery when Elasticsearch is started on each node.
+To run cluster nodes on different hosts, you'll need to update Elasticsearch's `/etc/elasticsearch/elasticsearch.yml` file in the Docker image so that the nodes can find each other:
+
+- Configure the [zen discovery module](http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html), by adding a `discovery.zen.ping.unicast.hosts` directive to point to the IP addresses or hostnames of hosts that should be polled to perform discovery when Elasticsearch is started on each node.
+
+- Set up the `network.*` directives as follows:
+
+		network.host: 0.0.0.0
+		network.publish_host: <reachable IP address or FQDN>
+
+	where `reachable IP address` refers to an IP address that other nodes can reach (e.g. a public IP address, or a routed private IP address, but *not* the Docker-assigned internal 172.x.x.x address).
+
+- Publish port 9300
 
 As an example, start an ELK container as usual on one host, which will act as the first master. Let's assume that the host is called *elk-master.example.com*.
 
@@ -516,11 +527,12 @@ This shows that only one node is up at the moment, and the `yellow` status indic
 Then, on another host, create a file named `elasticsearch-slave.yml` (let's say it's in `/home/elk`), with the following contents:
 
 	network.host: 0.0.0.0
+	network.publish_host: <reachable IP address or FQDN>
 	discovery.zen.ping.unicast.hosts: ["elk-master.example.com"]
 
 You can now start an ELK container that uses this configuration file, using the following command (which mounts the configuration files on the host into the container):
 
-	$ sudo docker run -it --rm=true -p 9200:9200 \
+	$ sudo docker run -it --rm=true -p 9200:9200 -p 9300:9300 \
 	  -v /home/elk/elasticsearch-slave.yml:/etc/elasticsearch/elasticsearch.yml \
 	  sebp/elk
 
