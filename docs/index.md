@@ -404,7 +404,7 @@ To modify an existing configuration file, you can bind-mount a local configurati
 
 To create your own image with updated or additional configuration files, you can create a `Dockerfile` that extends the original image, with contents such as the following:
 
-	FROM seb/elk
+	FROM sebp/elk
 	
 	# overwrite existing file
 	ADD /path/to/your-30-output.conf /etc/logstash/conf.d/30-output.conf
