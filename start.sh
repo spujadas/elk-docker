@@ -23,6 +23,10 @@ _term() {
 
 trap _term SIGTERM
 
+## Oddly, crond needs to be started while the container is running
+# so lets do that now
+service cron start
+
 
 ## remove pidfiles in case previous graceful termination failed
 # NOTE - This is the reason for the WARNING at the top - it's a bit hackish, 
