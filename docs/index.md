@@ -478,6 +478,8 @@ This command mounts the named volume `elk-data` to `/var/lib/elasticsearch` (and
 
 See Docker's page on [Managing Data in Containers](https://docs.docker.com/engine/userguide/containers/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
 
+In terms of permissions, Elasticsearch data is created by the image's `elasticsearch` user, with UID 991 and GID 991.
+
 ## Setting up an Elasticsearch cluster <a name="elasticsearch-cluster"></a>
 
 The ELK image can be used to run an Elasticsearch cluster, either on [separate hosts](#elasticsearch-cluster-different-hosts) or (mainly for test purposes) on a [single host](#elasticsearch-cluster-single-host), as described below.
@@ -692,7 +694,7 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 
 ## Breaking changes <a name="breaking changes"></a>
 
-Here is the list of breaking changes that may cause images built on later versions of the ELK image (rather tha
+Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
 
 - **Version 5** (advance warning)
 
@@ -705,6 +707,12 @@ Here is the list of breaking changes that may cause images built on later versio
 	*Applies to tags: same as for version 5 (see above).*
 
 	The use of Logstash forwarder is deprecated, its Logstash input plugin configuration will soon be removed, and port 5000 will no longer be exposed.
+
+- **UIDs and GIDs**
+
+	*Applies to tags: `es235_l234_k454` and later.*
+
+	Fixed UIDs and GIDs are now assigned to Elasticsearch (both the UID and GID are 991), Logstash (992), and Kibana (993). 
 
 - **Java 8**
 
