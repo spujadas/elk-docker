@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 2.3.4, Logstash 2.3.4, Kibana 4.5.3
+# Elasticsearch 2.3.5, Logstash 2.3.4, Kibana 4.5.4
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -9,7 +9,7 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2016-07-10
+ENV REFRESHED_AT 2016-08-20
 
 ###############################################################################
 #                                INSTALLATION
@@ -38,12 +38,16 @@ RUN set -x \
 
 ### install Elasticsearch
 
-ENV ES_VERSION 2.3.4
+ENV ES_VERSION 2.3.5
+ENV ES_GID 991
+ENV ES_UID 991
 
 RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
 RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable main > /etc/apt/sources.list.d/elasticsearch-2.x.list
 
-RUN apt-get update -qq \
+RUN groupadd -r elasticsearch -g ${ES_GID} \
+ && useradd -r -s /usr/sbin/nologin -M -c "Elasticsearch service user" -u ${ES_UID} -g elasticsearch elasticsearch \
+ && apt-get update -qq \
  && apt-get install -qqy \
 		elasticsearch=${ES_VERSION} \
 		openjdk-8-jdk \
@@ -55,13 +59,15 @@ RUN apt-get update -qq \
 ENV LOGSTASH_VERSION 2.3.4
 ENV LOGSTASH_HOME /opt/logstash
 ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
+ENV LOGSTASH_GID 992
+ENV LOGSTASH_UID 992
 
 RUN mkdir ${LOGSTASH_HOME} \
  && curl -O https://download.elasticsearch.org/logstash/logstash/${LOGSTASH_PACKAGE} \
  && tar xzf ${LOGSTASH_PACKAGE} -C ${LOGSTASH_HOME} --strip-components=1 \
  && rm -f ${LOGSTASH_PACKAGE} \
- && groupadd -r logstash \
- && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -g logstash logstash \
+ && groupadd -r logstash -g ${LOGSTASH_GID} \
+ && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -u ${LOGSTASH_UID} -g logstash logstash \
  && mkdir -p /var/log/logstash /etc/logstash/conf.d \
  && chown -R logstash:logstash ${LOGSTASH_HOME} /var/log/logstash
 
@@ -72,16 +78,18 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
 
 ### install Kibana
 
-ENV KIBANA_VERSION 4.5.3
+ENV KIBANA_VERSION 4.5.4
 ENV KIBANA_HOME /opt/kibana
 ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-linux-x64.tar.gz
+ENV KIBANA_GID 993
+ENV KIBANA_UID 993
 
 RUN mkdir ${KIBANA_HOME} \
  && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \
  && tar xzf ${KIBANA_PACKAGE} -C ${KIBANA_HOME} --strip-components=1 \
  && rm -f ${KIBANA_PACKAGE} \
- && groupadd -r kibana \
- && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -g kibana kibana \
+ && groupadd -r kibana -g ${KIBANA_GID} \
+ && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -u ${KIBANA_UID} -g kibana kibana \
  && mkdir -p /var/log/kibana \
  && chown -R kibana:kibana ${KIBANA_HOME} /var/log/kibana
 
