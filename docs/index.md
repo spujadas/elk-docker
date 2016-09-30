@@ -474,11 +474,13 @@ One way to do this is to mount a Docker named volume using `docker`'s `-v` optio
 
 This command mounts the named volume `elk-data` to `/var/lib/elasticsearch` (and automatically creates the volume if it doesn't exist; you could also pre-create it manually using `docker volume create elk-data`).
 
-**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). You can keep track of existing volumes using `docker volume ls`.
+**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (e.g. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). You can keep track of existing volumes using `docker volume ls`.
 
 See Docker's page on [Managing Data in Containers](https://docs.docker.com/engine/userguide/containers/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
 
 In terms of permissions, Elasticsearch data is created by the image's `elasticsearch` user, with UID 991 and GID 991.
+
+There is a [known situation](https://github.com/spujadas/elk-docker/issues/69) where SELinux denies access to the mounted volume when running in _enforcing_ mode. The workaround is to use the `setenforce 0` command to run SELinux in _permissive_ mode.
 
 ## Setting up an Elasticsearch cluster <a name="elasticsearch-cluster"></a>
 
