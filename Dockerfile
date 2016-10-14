@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 2.4.0, Logstash 2.4.0, Kibana 4.6.0
+# Elasticsearch 2.4.1, Logstash 2.4.0, Kibana 4.6.1
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -38,7 +38,7 @@ RUN set -x \
 
 ### install Elasticsearch
 
-ENV ES_VERSION 2.4.0
+ENV ES_VERSION 2.4.1
 ENV ES_GID 991
 ENV ES_UID 991
 
