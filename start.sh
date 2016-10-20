@@ -71,7 +71,7 @@ else
     echo "waiting for Elasticsearch to be up ($counter/30)"
   done
 
-  CLUSTER_NAME=$(grep -Po '(?<=^cluster.name: ).*' /etc/elasticsearch/elasticsearch.yml | sed -e 's/^[ \t]*//;s/[ \t]*$//')
+  CLUSTER_NAME=$(grep -Pzo "^cluster:\n([\s]+.*\n)*[\s]+name: \K.*|^cluster.name: \K.*" /etc/elasticsearch/elasticsearch.yml | sed -e 's/^[ \t]*//;s/[ \t]*$//')
   if [ -z "$CLUSTER_NAME" ]; then
      CLUSTER_NAME=elasticsearch
   fi
