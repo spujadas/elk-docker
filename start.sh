@@ -70,6 +70,12 @@ else
     ((counter++))
     echo "waiting for Elasticsearch to be up ($counter/30)"
   done
+  if [ ! "$(curl localhost:9200 2> /dev/null)" ]; then
+    echo "Couln't start Elasticsearch. Exiting."
+    echo "Elasticsearch log follows below."
+    cat /var/log/elasticsearch/elasticsearch.log
+    exit 1
+  fi
 
   CLUSTER_NAME=$(grep -Pzo "^cluster:\n([\s]+.*\n)*[\s]+name: \K.*|^cluster.name: \K.*" /etc/elasticsearch/elasticsearch.yml | sed -e 's/^[ \t]*//;s/[ \t]*$//')
   if [ -z "$CLUSTER_NAME" ]; then
