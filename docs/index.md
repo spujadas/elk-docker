@@ -666,7 +666,11 @@ Similarly, for Logstash forwarders, replace the contents of `01-lumberjack-input
 
 ## Troubleshooting <a name="troubleshooting"></a>
 
+**Important** – If you need help to troubleshoot the configuration of Elasticsearch, Kibana, or Elasticsearch, regardless of where the services are running (in a Docker container or not), please head over to the [Elastic forums](https://discuss.elastic.co/). The troubleshooting guidelines below only apply to the running a container using the ELK Docker image.
+
 Here are a few pointers to help you troubleshoot your containerised ELK.
+
+**As from version 5, if Elasticsearch is no longer starting** (i.e. the `waiting for Elasticsearch to be up (xx/30)` counter goes up to 30 and then the container exits with `Couln't start Elasticsearch. Exiting.` and a dump of Elasticsearch's logs), then make sure that the host's limits on mmap counts is set to at least 262144. Use `sysctl vm.max_map_count` to view the current value, and see [Elasticsearch's documentation on virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/vm-max-map-count.html#vm-max-map-count) for guidance on how to change this value. Note that the limits must be changed on the host; they cannot be changed from within a container.
 
 If your log-emitting client doesn't seem to be able to reach Logstash (or Elasticsearch, depending on where your client is meant to send logs to), make sure that:
 
@@ -684,9 +688,9 @@ If this still seems to fail, then you should have a look at:
 
 	Note that ELK's logs are rotated daily and are deleted after a week, using logrotate. You can change this behaviour by overwriting the `elasticsearch`, `logstash` and `kibana` files in `/etc/logrotate.d`.  
 
-For non-Docker-related issues with Elasticsearch, Kibana, and Elasticsearch, make sure you have a look at the [Elastic forums](https://discuss.elastic.co/).
-
 ## Reporting issues <a name="reporting-issues"></a>
+
+**Important** – For _non-Docker-related_ issues with Elasticsearch, Kibana, and Elasticsearch, report the issues on the appropriate [Elasticsearch](https://github.com/elastic/elasticsearch), [Logstash](https://github.com/elastic/logstash), or [Kibana](https://github.com/elastic/kibana) GitHub repository. 
 
 You can report issues with this image using [GitHub's issue tracker](https://github.com/spujadas/elk-docker/issues) (please avoid raising issues as comments on Docker Hub, if only for the fact that the notification system is broken at the time of writing so there's a fair chance that I won't see it for a while).
 
@@ -698,11 +702,11 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 
 Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
 
-- **Version 5** (advance warning)
+- **Version 5**
 
-	*Applies to tags: to be announced.*
+	*Applies to tags: `es500_l500_k500` and later.*
 
-	Breaking changes are to be expected in the upcoming version 5 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/master/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/master/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/master/releasenotes.html).
+	Breaking changes are introduced in version 5 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/master/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/master/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/master/releasenotes.html).
 
 - **Logstash forwarder** (advance warning)
 
