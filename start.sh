@@ -77,7 +77,21 @@ else
     exit 1
   fi
 
-  CLUSTER_NAME=$(curl localhost:9200/_cat/health?h=cluster 2> /dev/null)
+  # wait for cluster to respond before getting its name
+  counter=0
+  CLUSTER_NAME=
+  while [ -z "$CLUSTER_NAME" -a $counter -lt 30 ]; do
+    sleep 1
+    ((counter++))
+    CLUSTER_NAME=$(curl localhost:9200/_cat/health?h=cluster 2> /dev/null | tr -d '[:space:]')
+    echo "Waiting for Elasticsearch cluster to respond ($counter/30)"
+  done
+  if [ -z "$CLUSTER_NAME" ]; then
+    echo "Couln't get name of cluster. Exiting."
+    echo "Elasticsearch log follows below."
+    cat /var/log/elasticsearch/elasticsearch.log
+    exit 1
+  fi
   OUTPUT_LOGFILES+="/var/log/elasticsearch/${CLUSTER_NAME}.log "
 fi
 
