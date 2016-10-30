@@ -29,12 +29,12 @@ service cron start
 
 
 ## remove pidfiles in case previous graceful termination failed
-# NOTE - This is the reason for the WARNING at the top - it's a bit hackish, 
+# NOTE - This is the reason for the WARNING at the top - it's a bit hackish,
 #   but if it's good enough for Fedora (https://goo.gl/88eyXJ), it's good
 #   enough for me :)
 
 rm -f /var/run/elasticsearch/elasticsearch.pid /var/run/logstash.pid \
-  /var/run/kibana4.pid
+  /var/run/kibana5.pid
 
 ## initialise list of log files to stream in console (initially empty)
 OUTPUT_LOGFILES=""
@@ -126,7 +126,7 @@ if [ "$KIBANA_START" -ne "1" ]; then
   echo "KIBANA_START is set to something different from 1, not starting..."
 else
   service kibana start
-  OUTPUT_LOGFILES+="/var/log/kibana/kibana4.log "
+  OUTPUT_LOGFILES+="/var/log/kibana/kibana5.log "
 fi
 
 # Exit if nothing has been started
