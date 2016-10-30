@@ -77,10 +77,7 @@ else
     exit 1
   fi
 
-  CLUSTER_NAME=$(grep -Pzo "^cluster:\n([\s]+.*\n)*[\s]+name: \K.*|^cluster.name: \K.*" /etc/elasticsearch/elasticsearch.yml | sed -e 's/^[ \t]*//;s/[ \t]*$//')
-  if [ -z "$CLUSTER_NAME" ]; then
-     CLUSTER_NAME=elasticsearch
-  fi
+  CLUSTER_NAME=$(curl localhost:9200/_cat/health?h=cluster 2> /dev/null)
   OUTPUT_LOGFILES+="/var/log/elasticsearch/${CLUSTER_NAME}.log "
 fi
 
