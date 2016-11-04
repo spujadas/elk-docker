@@ -115,7 +115,7 @@ else
   fi
 
   service logstash start
-  OUTPUT_LOGFILES+="/var/log/logstash/logstash.log "
+  OUTPUT_LOGFILES+="/var/log/logstash/logstash-plain.log "
 fi
 
 # Kibana
