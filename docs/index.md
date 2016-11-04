@@ -583,7 +583,15 @@ For instance, with the default configuration files in the image, replace the con
 
 Here are a few pointers to help you troubleshoot your containerised ELK.
 
-**As from version 5, if Elasticsearch is no longer starting** (i.e. the `waiting for Elasticsearch to be up (xx/30)` counter goes up to 30 and then the container exits with `Couln't start Elasticsearch. Exiting.` and a dump of Elasticsearch's logs), then make sure that the host's limits on mmap counts is set to at least 262144. Use `sysctl vm.max_map_count` to view the current value, and see [Elasticsearch's documentation on virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/vm-max-map-count.html#vm-max-map-count) for guidance on how to change this value. Note that the limits must be changed on the host; they cannot be changed from within a container.
+**As from version 5, if Elasticsearch is no longer starting**, i.e. the `waiting for Elasticsearch to be up (xx/30)` counter goes up to 30 and the container exits with `Couln't start Elasticsearch. Exiting.`, then:
+
+- If Elasticsearch's logs are dumped, then read the recommendations in the logs and consider that they *must* be applied.
+
+	In particular, the message `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]` means that the host's limits on mmap counts **must** be set to at least 262144. Use `sysctl vm.max_map_count` to view the current value, and see [Elasticsearch's documentation on virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/vm-max-map-count.html#vm-max-map-count) for guidance on how to change this value. Note that the limits must be changed on the host; they cannot be changed from within a container.
+
+- If Elasticsearch's logs are *not* dumped (i.e. you get the following message: `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`), then Elasticsearch did not have enough memory to start.
+
+	Elasticsearch alone needs at least 2GB of RAM to run, so plan accordingly. 
 
 If your log-emitting client doesn't seem to be able to reach Logstash (or Elasticsearch, depending on where your client is meant to send logs to), make sure that:
 
