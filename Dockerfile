@@ -39,20 +39,19 @@ RUN set -x \
 ### install Elasticsearch
 
 ENV ES_VERSION 5.0.0
+ENV ES_PACKAGE elasticsearch-${ES_VERSION}.deb
 ENV ES_GID 991
 ENV ES_UID 991
 
-RUN curl https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
-RUN apt-get install apt-transport-https
-RUN echo deb https://artifacts.elastic.co/packages/5.x/apt stable main > /etc/apt/sources.list.d/elasticsearch-5.x.list
-
-RUN groupadd -r elasticsearch -g ${ES_GID} \
+RUN apt-get update -qq \
+ && apt-get install -qqy openjdk-8-jdk \
+ && apt-get clean \
+ && groupadd -r elasticsearch -g ${ES_GID} \
+ && curl https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
  && useradd -r -s /usr/sbin/nologin -M -c "Elasticsearch service user" -u ${ES_UID} -g elasticsearch elasticsearch \
- && apt-get update -qq \
- && apt-get install -qqy \
-		elasticsearch=${ES_VERSION} \
-		openjdk-8-jdk \
- && apt-get clean
+ && curl -O https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} \
+ && dpkg -i ${ES_PACKAGE} \
+ && rm -f ${ES_PACKAGE}
 
 
 ### install Logstash
