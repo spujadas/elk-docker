@@ -14,7 +14,6 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Overriding start-up variables](#overriding-variables)
 - [Forwarding logs](#forwarding-logs)
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
-	- [Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)
 	- [Linking a Docker container to the ELK container](#linking-containers)
 - [Building the image](#building-image)
 - [Tweaking the image](#tweaking-image)
@@ -32,6 +31,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Disabling SSL/TLS](#disabling-ssl-tls)
 - [Troubleshooting](#troubleshooting)
 - [Reporting issues](#reporting-issues)
+- [Breaking changes](#breaking-changes)
 - [References](#references)
 - [About](#about)
 
@@ -59,7 +59,7 @@ By default, if not tag is indicated (or if using the tag `latest`), the latest v
 
 Run a container from the image with the following command:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk sebp/elk
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk sebp/elk
 
 **Note** – The whole ELK stack will be started. See the *[Starting services selectively](#selective-services)* section to selectively start part of the stack.
 
@@ -68,13 +68,12 @@ This command publishes the following ports, which are needed for proper operatio
 - 5601 (Kibana web interface).
 - 9200 (Elasticsearch JSON interface).
 - 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs with Filebeat](#forwarding-logs-filebeat)* section).
-- 5000 (Logstash Lumberjack interface, receives logs from Logstash forwarders – see the *[Forwarding logs with Logstash forwarder](#forwarding-logs-logstash-forwarder)* section).
 
-**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it. This transport interface is notably used by [Elasticsearch's Java client API](https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/index.html).
+**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it. This transport interface is notably used by [Elasticsearch's Java client API](https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/index.html), and to run Elasticsearch in a cluster.
 
 The figure below shows how the pieces fit together.
 
-![](http://i.imgur.com/wDertsM.png)
+![](http://i.imgur.com/Og5eps4.png)
 
 Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a local native version of Docker, or the IP address of the virtual machine if running a VM-hosted version of Docker (see note).
 
@@ -96,7 +95,6 @@ If you're using [Docker Compose](https://docs.docker.com/compose/) to manage you
 	    - "5601:5601"
 	    - "9200:9200"
 	    - "5044:5044"
-	    - "5000:5000"
 
 You can then start the ELK container like this:
 
@@ -175,7 +173,7 @@ The following environment variables may be used to selectively start a subset of
 
 For example, the following command starts Elasticsearch only:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it \
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
 		-e LOGSTASH_START=0 -e KIBANA_START=0 --name elk sebp/elk
 
 Note that if the container is to be started with Elasticsearch _disabled_, then:
@@ -200,23 +198,21 @@ The following environment variables can be used to override the defaults used to
  
 	For instance, to set the min and max heap size to 512MB and 2G, set this environment variable to `-Xms512m -Xmx2g`.
 
+- `ES_CONNECT_RETRY`: number of seconds to wait for Elasticsearch to be up before starting Logstash and/or Kibana (default: `30`) 
+
 - `LS_HEAP_SIZE`: Logstash heap size (default: `"500m"`)
 
-- `LS_OPTS`: Logstash options (default: `"--auto-reload"` in images with tags `es231_l231_k450` and `es232_l232_k450`, `""` in `latest`)
-
-	**Warning** – As Logstash's auto-reload feature (introduced in version 2.3) creates a resource leak in early 2.3.x versions (see [https://github.com/elastic/logstash/issues/5235](https://github.com/elastic/logstash/issues/5235)), the default `--auto-reload` option has been removed in the `es233_l232_k451` image at the time (see [https://github.com/spujadas/elk-docker/issues/41](https://github.com/spujadas/elk-docker/issues/41)). For users of images with tags `es231_l231_k450` and `es232_l232_k450`, it is strongly recommended to override Logstash's options to disable the auto-reload feature by setting the `LS_OPTS` environment to `--no-auto-reload`. Future versions of the image may re-enable the auto-reload feature once a stable version of Logstash is released with the memory leak issue fixed (should be version 2.3.3). 
+- `LS_OPTS`: Logstash options (default: `"--auto-reload"` in images with tags `es231_l231_k450` and `es232_l232_k450`, `""` in `latest`; see [Breaking changes](#breaking-changes))
  
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size, Logstash with a 1GB heap size and Logstash's configuration auto-reload disabled:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it \
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
 		-e ES_HEAP_SIZE="2g" -e LS_HEAP_SIZE="1g" -e LS_OPTS="--no-auto-reload" \
 		--name elk sebp/elk
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 
 Forwarding logs from a host relies on a forwarding agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
-
-The forwarding agent that was originally used with Logstash was Logstash forwarder, but with the introduction of the [Beats platform](https://www.elastic.co/products/beats) it will be phased out in favour of Filebeat, which should now be the preferred option. The two approaches are described hereafter.
 
 ### Forwarding logs with Filebeat <a name="forwarding-logs-filebeat"></a>
 
@@ -233,7 +229,7 @@ Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, t
 	    enabled: true
 	    hosts:
 	      - elk:5044
-	    tls:
+	    ssl:
 		  certificate_authorities:
       	    - /etc/pki/tls/certs/logstash-beats.crt
 	    timeout: 15
@@ -268,93 +264,21 @@ Start Filebeat:
 
 In order to process multiline log entries (e.g. stack traces) as a single event using Filebeat, you may want to consider [Filebeat's multiline option](https://www.elastic.co/blog/beats-1-1-0-and-winlogbeat-released), which was introduced in Beats 1.1.0, as a handy alternative to altering Logstash's configuration files to use [Logstash's multiline codec](https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html).
 
-### Forwarding logs with Logstash forwarder <a name="forwarding-logs-logstash-forwarder"></a>
-
-**Note** – This approach is deprecated: [using Filebeat](#forwarding-logs-filebeat) is now the preferred way to forward logs.
-
-Install [Logstash forwarder](https://github.com/elasticsearch/logstash-forwarder) on the host you want to collect and forward logs from (see the *[References](#references)* section for links to detailed instructions).
-
-Here is a sample configuration file for Logstash forwarder, that forwards syslog and authentication logs, as well as [nginx](http://nginx.org/) logs.
-
-	{
-	  "network": {
-	    "servers": [ "elk:5000" ],
-	    "timeout": 15,
-	    "ssl ca": "/etc/pki/tls/certs/logstash-forwarder.crt"
-	  },
-	  "files": [
-	    {
-	      "paths": [
-	        "/var/log/syslog",
-	        "/var/log/auth.log"
-	       ],
-	      "fields": { "type": "syslog" }
-	    },
-	    {
-	      "paths": [
-	        "/var/log/nginx/access.log"
-	       ],
-	      "fields": { "type": "nginx-access" }
-	    }
-	   ]
-	}
-
-By default (see `/etc/init.d/logstash-forwarder` if you need to tweak anything):
-
-- The Logstash forwarder configuration file must be located in `/etc/logstash-forwarder`.
-- The Logstash forwarder needs a syslog daemon (e.g. rsyslogd, syslog-ng) to be running.
-
-In the sample configuration file, make sure that you replace `elk` in `elk:5000` with the hostname or IP address of the ELK-serving host.
-
-You'll also need to copy the `logstash-forwarder.crt` file (which contains the certificate authority's certificate – or server certificate as the certificate is self-signed – for Logstash's Lumberjack input plugin; see [Security considerations](#security-considerations) for more information on certificates) from the ELK image to `/etc/pki/tls/certs/logstash-forwarder.crt`.
-
-Lastly, you'll need to alter Logstash's Elasticsearch output plugin configuration (in `30-output.conf`) to remove the reference to the dynamic field `%{[@metadata][beat]}` in the `index` configuration option, as this field implies that a Beat is being used to forward logs. A minimal configuration file such as the following would work fine:
-
-	output {
-	  elasticsearch { hosts => ["localhost"] }
-	  stdout { codec => rubydebug }
-	}
-
-As a more complex example if you want Elasticsearch to process logs from both Beats (such as Filebeat) and Logstash forwarders, you could use an `if` condition to separate the incoming logs and use differentiated indices, e.g.: 
-
-	output {
-	  if [@metadata][beat] {
-	    elasticsearch {
-	      hosts => ["localhost"]
-	      sniffing => true
-	      manage_template => false
-	      index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}" 
-	      document_type => "%{[@metadata][type]}" 
-	    } 
-	  } else {
-	    elasticsearch { 
-	      hosts => ["localhost"]
-	      index => "other" 
-	      document_type => "stuff" 
-	    }
-	  }
-	  stdout { 
-	    codec => rubydebug 
-	  }
-	} 
- 
-**Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Logstash forwarder instance above.
-
 ### Linking a Docker container to the ELK container <a name="linking-containers"></a>
 
 If you want to forward logs from a Docker container to the ELK container, then you need to link the two containers.
 
-**Note** – The log-emitting Docker container must have a Logstash forwarder agent running in it for this to work.
+**Note** – The log-emitting Docker container must have Filebeat running in it for this to work.
 
 First of all, give the ELK container a name (e.g. `elk`) using the `--name` option:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk sebp/elk
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk sebp/elk
 
-Then start the log-emitting container with the `--link` option (replacing `your/image` with the name of the Logstash-forwarder-enabled image you're forwarding logs from):
+Then start the log-emitting container with the `--link` option (replacing `your/image` with the name of the Filebeat-enabled image you're forwarding logs from):
 
 	$ sudo docker run -p 80:80 -it --link elk:elk your/image
 
-From the perspective of the log emitting container, the ELK container is now known as `elk`, which is the hostname to be used in the `logstash-forwarder` configuration file.
+From the perspective of the log emitting container, the ELK container is now known as `elk`, which is the hostname to be used under `hosts` in the `filebeat.yml` configuration file.
 
 With Compose here's what example entries for a (locally built log-generating) container and an ELK container might look like in the `docker-compose.yml` file.
 
@@ -371,7 +295,6 @@ With Compose here's what example entries for a (locally built log-generating) co
 	    - "5601:5601"
 	    - "9200:9200"
 	    - "5044:5044"
-	    - "5000:5000"
 
 ## Building the image <a name="building-image"></a>
 
@@ -405,7 +328,7 @@ To modify an existing configuration file, you can bind-mount a local configurati
 
 To create your own image with updated or additional configuration files, you can create a `Dockerfile` that extends the original image, with contents such as the following:
 
-	FROM seb/elk
+	FROM sebp/elk
 	
 	# overwrite existing file
 	ADD /path/to/your-30-output.conf /etc/logstash/conf.d/30-output.conf
@@ -470,14 +393,18 @@ You may however want to use a dedicated data volume to persist this log data, fo
 
 One way to do this is to mount a Docker named volume using `docker`'s `-v` option, as in:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200  -p 5044:5044 -p 5000:5000 \
+	$ sudo docker run -p 5601:5601 -p 9200:9200  -p 5044:5044 \
 		-v elk-data:/var/lib/elasticsearch --name elk sebp/elk
 
 This command mounts the named volume `elk-data` to `/var/lib/elasticsearch` (and automatically creates the volume if it doesn't exist; you could also pre-create it manually using `docker volume create elk-data`).
 
-**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (i.e. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). You can keep track of existing volumes using `docker volume ls`.
+**Note** – By design, Docker never deletes a volume automatically (e.g. when no longer used by any container). Whilst this avoids accidental data loss, it also means that things can become messy if you're not managing your volumes properly (e.g. using the `-v` option when removing containers with `docker rm` to also delete the volumes... bearing in mind that the actual volume won't be deleted as long as at least one container is still referencing it, even if it's not running). You can keep track of existing volumes using `docker volume ls`.
 
 See Docker's page on [Managing Data in Containers](https://docs.docker.com/engine/userguide/containers/dockervolumes/) and Container42's [Docker In-depth: Volumes](http://container42.com/2014/11/03/docker-indepth-volumes/) page for more information on managing data volumes.
+
+In terms of permissions, Elasticsearch data is created by the image's `elasticsearch` user, with UID 991 and GID 991.
+
+There is a [known situation](https://github.com/spujadas/elk-docker/issues/69) where SELinux denies access to the mounted volume when running in _enforcing_ mode. The workaround is to use the `setenforce 0` command to run SELinux in _permissive_ mode.
 
 ## Setting up an Elasticsearch cluster <a name="elasticsearch-cluster"></a>
 
@@ -487,7 +414,18 @@ For more (non-Docker-specific) information on setting up an Elasticsearch cluste
 
 ### Running Elasticsearch nodes on different hosts <a name="elasticsearch-cluster-different-hosts"></a>
 
-To run nodes on different hosts, you'll need to update Elasticsearch's `/etc/elasticsearch/elasticsearch.yml` file in the Docker image to configure the [zen discovery module](http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html) as needed for the nodes to find each other. Specifically, you need to add a `discovery.zen.ping.unicast.hosts` directive to point to the IP addresses or hostnames of hosts that should be polled to perform discovery when Elasticsearch is started on each node.
+To run cluster nodes on different hosts, you'll need to update Elasticsearch's `/etc/elasticsearch/elasticsearch.yml` file in the Docker image so that the nodes can find each other:
+
+- Configure the [zen discovery module](http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html), by adding a `discovery.zen.ping.unicast.hosts` directive to point to the IP addresses or hostnames of hosts that should be polled to perform discovery when Elasticsearch is started on each node.
+
+- Set up the `network.*` directives as follows:
+
+		network.host: 0.0.0.0
+		network.publish_host: <reachable IP address or FQDN>
+
+	where `reachable IP address` refers to an IP address that other nodes can reach (e.g. a public IP address, or a routed private IP address, but *not* the Docker-assigned internal 172.x.x.x address).
+
+- Publish port 9300
 
 As an example, start an ELK container as usual on one host, which will act as the first master. Let's assume that the host is called *elk-master.example.com*.
 
@@ -517,11 +455,12 @@ This shows that only one node is up at the moment, and the `yellow` status indic
 Then, on another host, create a file named `elasticsearch-slave.yml` (let's say it's in `/home/elk`), with the following contents:
 
 	network.host: 0.0.0.0
+	network.publish_host: <reachable IP address or FQDN>
 	discovery.zen.ping.unicast.hosts: ["elk-master.example.com"]
 
 You can now start an ELK container that uses this configuration file, using the following command (which mounts the configuration files on the host into the container):
 
-	$ sudo docker run -it --rm=true -p 9200:9200 \
+	$ sudo docker run -it --rm=true -p 9200:9200 -p 9300:9300 \
 	  -v /home/elk/elasticsearch-slave.yml:/etc/elasticsearch/elasticsearch.yml \
 	  sebp/elk
 
@@ -552,7 +491,7 @@ Setting up Elasticsearch nodes to run on a single host is similar to running the
 
 Start the first node using the usual `docker` command on the host:
 
-	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk sebp/elk
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk sebp/elk
 
 Now, create a basic `elasticsearch-slave.yml` file containing the following lines:
 
@@ -640,18 +579,21 @@ For instance, with the default configuration files in the image, replace the con
 	  }
 	}
 
-Similarly, for Logstash forwarders, replace the contents of `01-lumberjack-input.conf` with:
-
-	input {
-	  lumberjack {
-	    port => 5000
-	    type => "logs"
-	  }
-	}
-
 ## Troubleshooting <a name="troubleshooting"></a>
 
+**Important** – If you need help to troubleshoot the configuration of Elasticsearch, Logstash, or Kibana, regardless of where the services are running (in a Docker container or not), please head over to the [Elastic forums](https://discuss.elastic.co/). The troubleshooting guidelines below only apply to the running a container using the ELK Docker image.
+
 Here are a few pointers to help you troubleshoot your containerised ELK.
+
+**As from version 5, if Elasticsearch is no longer starting**, i.e. the `waiting for Elasticsearch to be up (xx/30)` counter goes up to 30 and the container exits with `Couln't start Elasticsearch. Exiting.`, then:
+
+- If Elasticsearch's logs are dumped, then read the recommendations in the logs and consider that they *must* be applied.
+
+	In particular, the message `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]` means that the host's limits on mmap counts **must** be set to at least 262144. Use `sysctl vm.max_map_count` to view the current value, and see [Elasticsearch's documentation on virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/vm-max-map-count.html#vm-max-map-count) for guidance on how to change this value. Note that the limits must be changed on the host; they cannot be changed from within a container.
+
+- If Elasticsearch's logs are *not* dumped (i.e. you get the following message: `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`), then Elasticsearch did not have enough memory to start.
+
+	Elasticsearch alone needs at least 2GB of RAM to run, so plan accordingly. 
 
 If your log-emitting client doesn't seem to be able to reach Logstash (or Elasticsearch, depending on where your client is meant to send logs to), make sure that:
 
@@ -665,17 +607,62 @@ If this still seems to fail, then you should have a look at:
 
 - Your log-emitting client's logs.
 
-- ELK's logs, by `docker exec`'ing into the running container (see [Creating a dummy log entry](#creating-dummy-log-entry)) and checking Logstash's logs (located in `/var/log/logstash`), Elasticsearch's logs (in `/var/log/elasticsearch`), and Kibana's logs (in `/var/log/kibana`).
+- ELK's logs, by `docker exec`'ing into the running container (see [Creating a dummy log entry](#creating-dummy-log-entry)) turning on stdout log (see [plugins-outputs-stdout](https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html)) and checking Logstash's logs (located in `/var/log/logstash`), Elasticsearch's logs (in `/var/log/elasticsearch`), and Kibana's logs (in `/var/log/kibana`).
 
 	Note that ELK's logs are rotated daily and are deleted after a week, using logrotate. You can change this behaviour by overwriting the `elasticsearch`, `logstash` and `kibana` files in `/etc/logrotate.d`.  
 
 ## Reporting issues <a name="reporting-issues"></a>
+
+**Important** – For _non-Docker-related_ issues with Elasticsearch, Kibana, and Elasticsearch, report the issues on the appropriate [Elasticsearch](https://github.com/elastic/elasticsearch), [Logstash](https://github.com/elastic/logstash), or [Kibana](https://github.com/elastic/kibana) GitHub repository. 
 
 You can report issues with this image using [GitHub's issue tracker](https://github.com/spujadas/elk-docker/issues) (please avoid raising issues as comments on Docker Hub, if only for the fact that the notification system is broken at the time of writing so there's a fair chance that I won't see it for a while).
 
 Bearing in mind that the first thing I'll need to do is reproduce your issue, please provide as much relevant information (e.g. logs, configuration files, what you were expecting and what you got instead, any troubleshooting steps that you took, what _is_ working) as possible for me to do that.
 
 [Pull requests](https://github.com/spujadas/elk-docker/pulls) are also welcome if you have found an issue and can solve it.
+
+## Breaking changes <a name="breaking changes"></a>
+
+Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
+
+- **Version 5**
+
+	*Applies to tags: `es500_l500_k500` and later.*
+
+	Breaking changes are introduced in version 5 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/master/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/master/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/master/releasenotes.html).
+
+- **Logstash forwarder**
+
+	*Applies to tags: `es500_l500_k500` and later.*
+
+	The use of Logstash forwarder is deprecated, its Logstash input plugin configuration has been removed, and port 5000 is no longer exposed.
+
+- **UIDs and GIDs**
+
+	*Applies to tags: `es235_l234_k454` and later.*
+
+	Fixed UIDs and GIDs are now assigned to Elasticsearch (both the UID and GID are 991), Logstash (992), and Kibana (993). 
+
+- **Java 8**
+
+	*Applies to tags: `es234_l234_k452` and later.*
+
+	This image initially used Oracle JDK 7, which is [no longer updated by Oracle](http://www.oracle.com/technetwork/java/javase/eol-135779.html), and no longer available as a Ubuntu package.
+
+	As from tag `es234_l234_k452`, the image uses Oracle JDK 8. This may have unintended side effects on plugins that rely on Java.
+
+- **Logstash configuration auto-reload**
+
+	*Applies to tags: `es231_l231_k450`, `es232_l232_k450`.*
+
+	Logstash's configuration auto-reload option was introduced in Logstash 2.3 and enabled in the images with tags `es231_l231_k450` and `es232_l232_k450`.
+
+	As this feature created a resource leak prior to Logstash 2.3.3 (see [https://github.com/elastic/logstash/issues/5235](https://github.com/elastic/logstash/issues/5235)), the `--auto-reload` option was removed as from the `es233_l232_k451`-tagged image (see [https://github.com/spujadas/elk-docker/issues/41](https://github.com/spujadas/elk-docker/issues/41)).
+
+	Users of images with tags `es231_l231_k450` and `es232_l232_k450` are strongly recommended:
+
+	- To either override Logstash's options to disable the auto-reload feature by setting the `LS_OPTS` environment to `--no-auto-reload` if this feature is not needed.
+	- Or to use a later version of the image (from `es234_l234_k452` onwards) and pass `--auto-reload` to `LS_OPTS` if the feature is needed.
 
 ## References <a name="references"></a>
 

@@ -1,4 +1,4 @@
-/var/log/kibana/kibana4.log {
+/var/log/kibana/kibana5.log {
     daily
     rotate 7
     copytruncate

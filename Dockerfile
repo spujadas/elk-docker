@@ -1,15 +1,15 @@
 # Dockerfile for ELK stack
-# Elasticsearch 2.3.3, Logstash 2.3.2, Kibana 4.5.1
+# Elasticsearch 5.0.1, Logstash 5.0.1, Kibana 5.0.1
 
 # Build with:
 # docker build -t <repo-user>/elk .
 
 # Run with:
-# docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -p 5000:5000 -it --name elk <repo-user>/elk
+# docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2016-04-07
+ENV REFRESHED_AT 2016-10-30
 
 ###############################################################################
 #                                INSTALLATION
@@ -37,32 +37,36 @@ RUN set -x \
 
 
 ### install Elasticsearch
-
-ENV ES_VERSION 2.3.3
-ENV ES_HOME /usr/share/elasticsearch
-
-RUN curl http://packages.elasticsearch.org/GPG-KEY-elasticsearch | apt-key add -
-RUN echo deb http://packages.elasticsearch.org/elasticsearch/2.x/debian stable main > /etc/apt/sources.list.d/elasticsearch-2.x.list
+ENV ES_VERSION 5.0.1
+ENV ES_PACKAGE elasticsearch-${ES_VERSION}.deb
+ENV ES_GID 991
+ENV ES_UID 991
 
 RUN apt-get update -qq \
- && apt-get install -qqy \
-    elasticsearch=${ES_VERSION} \
-    openjdk-7-jdk \
- && apt-get clean
+ && apt-get install -qqy openjdk-8-jdk \
+ && apt-get clean \
+ && groupadd -r elasticsearch -g ${ES_GID} \
+ && curl https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
+ && useradd -r -s /usr/sbin/nologin -M -c "Elasticsearch service user" -u ${ES_UID} -g elasticsearch elasticsearch \
+ && curl -O https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} \
+ && dpkg -i ${ES_PACKAGE} \
+ && rm -f ${ES_PACKAGE}
 
 
 ### install Logstash
 
-ENV LOGSTASH_VERSION 2.3.2
+ENV LOGSTASH_VERSION 5.0.1
 ENV LOGSTASH_HOME /opt/logstash
 ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
+ENV LOGSTASH_GID 992
+ENV LOGSTASH_UID 992
 
 RUN mkdir ${LOGSTASH_HOME} \
- && curl -O https://download.elasticsearch.org/logstash/logstash/${LOGSTASH_PACKAGE} \
+ && curl -O https://artifacts.elastic.co/downloads/logstash/${LOGSTASH_PACKAGE} \
  && tar xzf ${LOGSTASH_PACKAGE} -C ${LOGSTASH_HOME} --strip-components=1 \
  && rm -f ${LOGSTASH_PACKAGE} \
- && groupadd -r logstash \
- && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -g logstash logstash \
+ && groupadd -r logstash -g ${LOGSTASH_GID} \
+ && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -u ${LOGSTASH_UID} -g logstash logstash \
  && mkdir -p /var/log/logstash /etc/logstash/conf.d \
  && chown -R logstash:logstash ${LOGSTASH_HOME} /var/log/logstash
 
@@ -73,16 +77,18 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
 
 ### install Kibana
 
-ENV KIBANA_VERSION 4.5.1
+ENV KIBANA_VERSION 5.0.1
 ENV KIBANA_HOME /opt/kibana
-ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-linux-x64.tar.gz
+ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-linux-x86_64.tar.gz
+ENV KIBANA_GID 993
+ENV KIBANA_UID 993
 
 RUN mkdir ${KIBANA_HOME} \
- && curl -O https://download.elasticsearch.org/kibana/kibana/${KIBANA_PACKAGE} \
+ && curl -O https://artifacts.elastic.co/downloads/kibana/${KIBANA_PACKAGE} \
  && tar xzf ${KIBANA_PACKAGE} -C ${KIBANA_HOME} --strip-components=1 \
  && rm -f ${KIBANA_PACKAGE} \
- && groupadd -r kibana \
- && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -g kibana kibana \
+ && groupadd -r kibana -g ${KIBANA_GID} \
+ && useradd -r -s /usr/sbin/nologin -d ${KIBANA_HOME} -c "Kibana service user" -u ${KIBANA_UID} -g kibana kibana \
  && mkdir -p /var/log/kibana \
  && chown -R kibana:kibana ${KIBANA_HOME} /var/log/kibana
 
@@ -90,6 +96,8 @@ WORKDIR ${KIBANA_HOME}
 RUN gosu kibana bin/kibana plugin --install elastic/sense
 
 ADD ./kibana-init /etc/init.d/kibana
+ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
+
 RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
  && chmod +x /etc/init.d/kibana
 
@@ -107,13 +115,10 @@ ADD ./elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 
 # certs/keys for Beats and Lumberjack input
 RUN mkdir -p /etc/pki/tls/certs && mkdir /etc/pki/tls/private
-ADD ./logstash-forwarder.crt /etc/pki/tls/certs/logstash-forwarder.crt
-ADD ./logstash-forwarder.key /etc/pki/tls/private/logstash-forwarder.key
 ADD ./logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
 
 # filters
-ADD ./01-lumberjack-input.conf /etc/logstash/conf.d/01-lumberjack-input.conf
 ADD ./02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
 ADD ./03-gelf-input.conf /etc/logstash/conf.d/03-gelf-input.conf
 ADD ./10-syslog.conf /etc/logstash/conf.d/10-syslog.conf
@@ -136,14 +141,6 @@ RUN chmod 644 /etc/logrotate.d/elasticsearch \
 
 
 ###############################################################################
-#                           ELASTICSEARCH PLUGINS
-###############################################################################
-
-WORKDIR ${ES_HOME}
-RUN gosu elasticsearch bin/plugin install royrusso/elasticsearch-HQ
-
-
-###############################################################################
 #                                   START
 ###############################################################################
 
@@ -151,6 +148,7 @@ ADD ./start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 EXPOSE 5601 9200 9300 5000 5044 12202
+
 VOLUME /var/lib/elasticsearch
 
 CMD [ "/usr/local/bin/start.sh" ]

@@ -33,7 +33,7 @@ LS_HOME=
 LS_HEAP_SIZE="500m"
 LS_JAVA_OPTS="-Djava.io.tmpdir=${LS_HOME}"
 LS_LOG_DIR=/var/log/logstash
-LS_LOG_FILE="${LS_LOG_DIR}/$name.log"
+LS_LOG_FILE="${LS_LOG_DIR}/${name}-plain.log"
 LS_CONF_DIR=/etc/logstash/conf.d
 LS_OPEN_FILES=16384
 LS_NICE=19
@@ -43,7 +43,7 @@ LS_OPTS=
 [ -r /etc/sysconfig/$name ] && . /etc/sysconfig/$name
 
 program=/opt/logstash/bin/logstash
-args="agent -f ${LS_CONF_DIR} -l ${LS_LOG_FILE} ${LS_OPTS}"
+args="--path.config ${LS_CONF_DIR} --path.logs ${LS_LOG_DIR} ${LS_OPTS}"
 
 start() {
   HOME=${LS_HOME}
