@@ -92,9 +92,6 @@ RUN mkdir ${KIBANA_HOME} \
  && mkdir -p /var/log/kibana \
  && chown -R kibana:kibana ${KIBANA_HOME} /var/log/kibana
 
-WORKDIR ${KIBANA_HOME}
-RUN gosu kibana bin/kibana plugin --install elastic/sense
-
 ADD ./kibana-init /etc/init.d/kibana
 ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
 
