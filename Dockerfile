@@ -37,7 +37,6 @@ RUN set -x \
 
 
 ### install Elasticsearch
-
 ENV ES_VERSION 5.0.1
 ENV ES_PACKAGE elasticsearch-${ES_VERSION}.deb
 ENV ES_GID 991
@@ -118,6 +117,7 @@ ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
 
 # filters
 ADD ./02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
+ADD ./03-gelf-input.conf /etc/logstash/conf.d/03-gelf-input.conf
 ADD ./10-syslog.conf /etc/logstash/conf.d/10-syslog.conf
 ADD ./11-nginx.conf /etc/logstash/conf.d/11-nginx.conf
 ADD ./30-output.conf /etc/logstash/conf.d/30-output.conf
@@ -144,7 +144,8 @@ RUN chmod 644 /etc/logrotate.d/elasticsearch \
 ADD ./start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-EXPOSE 5601 9200 9300 5044
+EXPOSE 5601 9200 9300 5000 5044 12202
+
 VOLUME /var/lib/elasticsearch
 
 CMD [ "/usr/local/bin/start.sh" ]
