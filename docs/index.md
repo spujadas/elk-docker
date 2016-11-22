@@ -579,7 +579,8 @@ For instance, with the default configuration files in the image, replace the con
 	  }
 	}
 
-## Troubleshooting <a name="troubleshooting"></a>
+## 
+<a name="troubleshooting"></a>
 
 **Important** – If you need help to troubleshoot the configuration of Elasticsearch, Logstash, or Kibana, regardless of where the services are running (in a Docker container or not), please head over to the [Elastic forums](https://discuss.elastic.co/). The troubleshooting guidelines below only apply to the running a container using the ELK Docker image.
 
