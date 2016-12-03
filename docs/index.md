@@ -342,8 +342,6 @@ Then build the extended image using the `docker build` syntax.
 
 Elasticsearch's home directory in the image is `/usr/share/elasticsearch`, its [plugin management script](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-plugins.html) (`plugin`) resides in the `bin` subdirectory, and plugins are installed in `plugins`.
 
-Elasticsearch runs as the user `elasticsearch`. To avoid issues with permissions, it is therefore recommended to install Elasticsearch plugins as `elasticsearch`, using the `gosu` command (see below for an example, and references for further details).  
-
 A `Dockerfile` like the following will extend the base image and install Elastic HQ, a management and monitoring plugin for Elasticsearch, using `plugin`.
 
 	FROM sebp/elk
@@ -351,7 +349,7 @@ A `Dockerfile` like the following will extend the base image and install Elastic
 	ENV ES_HOME /usr/share/elasticsearch
 	WORKDIR ${ES_HOME}
 
-	RUN gosu elasticsearch bin/plugin install royrusso/elasticsearch-HQ
+	RUN bin/elasticsearch-plugin install royrusso/elasticsearch-HQ
 
 You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image. The Elastic HQ interface will be accessible at `http://<your-host>:9200/_plugin/hq/` (e.g. [http://localhost:9200/_plugin/hq/](http://localhost:9200/_plugin/hq/) for a local native instance of Docker).
 
@@ -381,7 +379,7 @@ The following `Dockerfile` can be used to extend the base image and install the 
 	FROM sebp/elk
 
 	WORKDIR ${KIBANA_HOME}
-	RUN gosu kibana bin/kibana plugin -i elastic/sense
+	RUN gosu kibana bin/kibana-plugin install elastic/sense
 
 See the *[Building the image](#building-image)* section above for instructions on building the new image. You can then run a container based on this image using the same command line as the one in the *[Usage](#usage)* section. The Sense interface will be accessible at `http://<your-host>:5601/apss/sense` (e.g. [http://localhost:5601/app/sense](http://localhost:5601/app/sense) for a local native instance of Docker).
 
