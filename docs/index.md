@@ -340,24 +340,27 @@ Then build the extended image using the `docker build` syntax.
 
 ### Installing Elasticsearch plugins <a name="installing-elasticsearch-plugins"></a>
 
-Elasticsearch's home directory in the image is `/usr/share/elasticsearch`, its [plugin management script](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-plugins.html) (`plugin`) resides in the `bin` subdirectory, and plugins are installed in `plugins`.
+Elasticsearch's home directory in the image is `/opt/elasticsearch`, its [plugin management script](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-plugins.html) (`elasticsearch-plugin`) resides in the `bin` subdirectory, and plugins are installed in `plugins`.
 
-A `Dockerfile` like the following will extend the base image and install Elastic HQ, a management and monitoring plugin for Elasticsearch, using `plugin`.
+Elasticsearch runs as the user `elasticsearch`. To avoid issues with permissions, it is therefore recommended to install Elasticsearch plugins as `elasticsearch`, using the `gosu` command (see below for an example, and references for further details).  
+
+A `Dockerfile` like the following will extend the base image and install the [GeoIP processor plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-geoip.html) (which adds information about the geographical location of IP addresses):
 
 	FROM sebp/elk
 
-	ENV ES_HOME /usr/share/elasticsearch
+	ENV ES_HOME /opt/elasticsearch
 	WORKDIR ${ES_HOME}
 
-	RUN bin/elasticsearch-plugin install royrusso/elasticsearch-HQ
+	RUN gosu elasticsearch bin/elasticsearch-plugin install \
+	    -Edefault.path.conf=/etc/elasticsearch ingest-geoip
 
-You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image. The Elastic HQ interface will be accessible at `http://<your-host>:9200/_plugin/hq/` (e.g. [http://localhost:9200/_plugin/hq/](http://localhost:9200/_plugin/hq/) for a local native instance of Docker).
+You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image.
 
 ### Installing Logstash plugins <a name="installing-logstash-plugins"></a>
 
-The name of Logstash's home directory in the image is stored in the `LOGSTASH_HOME` environment variable (which is set to `/opt/logstash` in the base image). Logstash's plugin management script (`plugin`) is located in the `bin` subdirectory.
+The name of Logstash's home directory in the image is stored in the `LOGSTASH_HOME` environment variable (which is set to `/opt/logstash` in the base image). Logstash's plugin management script (`logstash-plugin`) is located in the `bin` subdirectory.
 
-Logstash runs as the user `logstash`. To avoid issues with permissions, it is therefore recommended to install Kibana plugins as `logstash`, using the `gosu` command (see below for an example, and references for further details).  
+Logstash runs as the user `logstash`. To avoid issues with permissions, it is therefore recommended to install Logstash plugins as `logstash`, using the `gosu` command (see below for an example, and references for further details).  
 
 The following `Dockerfile` can be used to extend the base image and install the [RSS input plugin](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-rss.html):
 
@@ -370,7 +373,7 @@ See the *[Building the image](#building-image)* section above for instructions o
 
 ### Installing Kibana plugins <a name="installing-kibana-plugins"></a>
 
-The name of Kibana's home directory in the image is stored in the `KIBANA_HOME` environment variable (which is set to `/opt/kibana` in the base image). Kibana's plugin management script (`plugin`) is located in the `bin` subdirectory, and plugins are installed in `installedPlugins`.
+The name of Kibana's home directory in the image is stored in the `KIBANA_HOME` environment variable (which is set to `/opt/kibana` in the base image). Kibana's plugin management script (`kibana-plugin`) is located in the `bin` subdirectory, and plugins are installed in `installedPlugins`.
 
 Kibana runs as the user `kibana`. To avoid issues with permissions, it is therefore recommended to install Kibana plugins as `kibana`, using the `gosu` command (see below for an example, and references for further details).  
 
@@ -579,7 +582,7 @@ For instance, with the default configuration files in the image, replace the con
 
 ## Troubleshooting <a name="troubleshooting"></a>
 
-**Important** – If you need help to troubleshoot the configuration of Elasticsearch, Logstash, or Kibana, regardless of where the services are running (in a Docker container or not), please head over to the [Elastic forums](https://discuss.elastic.co/). The troubleshooting guidelines below only apply to the running a container using the ELK Docker image.
+**Important** – If you need help to troubleshoot the configuration of Elasticsearch, Logstash, or Kibana, regardless of where the services are running (in a Docker container or not), please head over to the [Elastic forums](https://discuss.elastic.co/). The troubleshooting guidelines below only apply to running a container using the ELK Docker image.
 
 Here are a few pointers to help you troubleshoot your containerised ELK.
 
