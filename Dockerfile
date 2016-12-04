@@ -49,7 +49,6 @@ ENV ES_PACKAGE elasticsearch-${ES_VERSION}.tar.gz
 ENV ES_GID 991
 ENV ES_UID 991
 
-# Elasticsearch
 RUN mkdir ${ES_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} \
  && tar xzf ${ES_PACKAGE} -C ${ES_HOME} --strip-components=1 \
@@ -148,6 +147,7 @@ RUN chmod 644 /etc/logrotate.d/elasticsearch \
 
 
 ### configure Kibana
+
 ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
 
 
