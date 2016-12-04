@@ -626,6 +626,14 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 
 Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
 
+- **Elasticsearch home directory**
+
+	*Applies to tags: `elk502` and later.*
+
+	Elasticsearch is no longer installed from the `deb` package (which attempts, in version 5.0.2, to modify system files that aren't accessible from a container); instead it is installed from the `tar.gz` package. 
+
+	As a consequence, Elasticsearch's home directory is now `/opt/elasticsearch` (was `/usr/share/elasticsearch`).  
+
 - **Version 5**
 
 	*Applies to tags: `es500_l500_k500` and later.*
