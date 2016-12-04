@@ -16,10 +16,7 @@ ENV REFRESHED_AT 2016-12-04
 #                                INSTALLATION
 ###############################################################################
 
-ENV ELK_VERSION 5.0.1
-
-
-### install prerequisites (cURL, gosu)
+### install prerequisites (cURL, gosu, JDK)
 
 ENV GOSU_VERSION 1.8
 
@@ -36,27 +33,35 @@ RUN set -x \
  && rm -r "$GNUPGHOME" /usr/local/bin/gosu.asc \
  && chmod +x /usr/local/bin/gosu \
  && gosu nobody true \
+ && apt-get update -qq \
+ && apt-get install -qqy openjdk-8-jdk \
  && apt-get clean \
  && set +x
 
 
+ENV ELK_VERSION 5.0.1
+
 ### install Elasticsearch
 
 ENV ES_VERSION ${ELK_VERSION}
-ENV ES_HOME /usr/share/elasticsearch
-ENV ES_PACKAGE elasticsearch-${ES_VERSION}.deb
+ENV ES_HOME /opt/elasticsearch
+ENV ES_PACKAGE elasticsearch-${ES_VERSION}.tar.gz
 ENV ES_GID 991
 ENV ES_UID 991
 
-RUN apt-get update -qq \
- && apt-get install -qqy openjdk-8-jdk \
- && apt-get clean \
- && groupadd -r elasticsearch -g ${ES_GID} \
- && curl https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add - \
- && useradd -r -s /usr/sbin/nologin -M -c "Elasticsearch service user" -u ${ES_UID} -g elasticsearch elasticsearch \
+# Elasticsearch
+RUN mkdir ${ES_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} \
- && dpkg -i ${ES_PACKAGE} \
- && rm -f ${ES_PACKAGE}
+ && tar xzf ${ES_PACKAGE} -C ${ES_HOME} --strip-components=1 \
+ && rm -f ${ES_PACKAGE} \
+ && groupadd -r elasticsearch -g ${ES_GID} \
+ && useradd -r -s /usr/sbin/nologin -M -c "Elasticsearch service user" -u ${ES_UID} -g elasticsearch elasticsearch \
+ && mkdir -p /var/log/elasticsearch /etc/elasticsearch /etc/elasticsearch/scripts /var/lib/elasticsearch \
+ && chown -R elasticsearch:elasticsearch ${ELASTICSEARCH_HOME} /var/log/elasticsearch /var/lib/elasticsearch
+
+ADD ./elasticsearch-init /etc/init.d/elasticsearch
+RUN sed -i -e 's#^ES_HOME=$#ES_HOME='$ES_HOME'#' /etc/init.d/elasticsearch \
+ && chmod +x /etc/init.d/elasticsearch
 
 
 ### install Logstash
@@ -99,8 +104,6 @@ RUN mkdir ${KIBANA_HOME} \
  && chown -R kibana:kibana ${KIBANA_HOME} /var/log/kibana
 
 ADD ./kibana-init /etc/init.d/kibana
-ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
-
 RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana \
  && chmod +x /etc/init.d/kibana
 
@@ -112,6 +115,8 @@ RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana 
 ### configure Elasticsearch
 
 ADD ./elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
+ADD ./elasticsearch-log4j2.properties /etc/elasticsearch/log4j2.properties
+ADD ./elasticsearch-jvm.options /etc/elasticsearch/jvm.options
 
 
 ### configure Logstash
@@ -140,6 +145,10 @@ ADD ./kibana-logrotate /etc/logrotate.d/kibana
 RUN chmod 644 /etc/logrotate.d/elasticsearch \
  && chmod 644 /etc/logrotate.d/logstash \
  && chmod 644 /etc/logrotate.d/kibana
+
+
+### configure Kibana
+ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
 
 
 ###############################################################################
