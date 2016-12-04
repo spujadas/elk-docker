@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch 5.0.1, Logstash 5.0.1, Kibana 5.0.1
+# Elasticsearch, Logstash, Kibana 5.0.1
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -9,11 +9,15 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2016-10-30
+ENV REFRESHED_AT 2016-12-04
+
 
 ###############################################################################
 #                                INSTALLATION
 ###############################################################################
+
+ENV ELK_VERSION 5.0.1
+
 
 ### install prerequisites (cURL, gosu)
 
@@ -38,7 +42,8 @@ RUN set -x \
 
 ### install Elasticsearch
 
-ENV ES_VERSION 5.0.1
+ENV ES_VERSION ${ELK_VERSION}
+ENV ES_HOME /usr/share/elasticsearch
 ENV ES_PACKAGE elasticsearch-${ES_VERSION}.deb
 ENV ES_GID 991
 ENV ES_UID 991
@@ -56,7 +61,7 @@ RUN apt-get update -qq \
 
 ### install Logstash
 
-ENV LOGSTASH_VERSION 5.0.1
+ENV LOGSTASH_VERSION ${ELK_VERSION}
 ENV LOGSTASH_HOME /opt/logstash
 ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
 ENV LOGSTASH_GID 992
@@ -78,7 +83,7 @@ RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
 
 ### install Kibana
 
-ENV KIBANA_VERSION 5.0.1
+ENV KIBANA_VERSION ${ELK_VERSION}
 ENV KIBANA_HOME /opt/kibana
 ENV KIBANA_PACKAGE kibana-${KIBANA_VERSION}-linux-x86_64.tar.gz
 ENV KIBANA_GID 993
