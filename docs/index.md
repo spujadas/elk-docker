@@ -628,7 +628,7 @@ Here is the list of breaking changes that may have side effects when upgrading t
 
 - **Elasticsearch home directory**
 
-	*Applies to tags: `elk502` and later.*
+	*Applies to tags: `502` and later.*
 
 	Elasticsearch is no longer installed from the `deb` package (which attempts, in version 5.0.2, to modify system files that aren't accessible from a container); instead it is installed from the `tar.gz` package. 
 
