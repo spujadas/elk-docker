@@ -89,7 +89,6 @@ else
 
   # wait for cluster to respond before getting its name
   counter=0
-  CLUSTER_NAME=
   while [ -z "$CLUSTER_NAME" -a $counter -lt 30 ]; do
     sleep 1
     ((counter++))
