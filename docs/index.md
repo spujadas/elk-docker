@@ -602,6 +602,19 @@ Here are a few pointers to help you troubleshoot your containerised ELK.
 
 	Elasticsearch alone needs at least 2GB of RAM to run, so plan accordingly. 
 
+- An additional way of working out why Elasticsearch isn't starting is to:
+ 
+	- Start a container with the `bash` command:
+	
+			$ sudo docker run -it docker_elk bash
+
+	- Start Elasticsearch manually to look at what it outputs:
+	 
+			$ gosu elasticsearch /opt/elasticsearch/bin/elasticsearch \
+				-Edefault.path.logs=/var/log/elasticsearch \
+				-Edefault.path.data=/var/lib/elasticsearch \
+				-Edefault.path.conf=/etc/elasticsearch 
+
 If your log-emitting client doesn't seem to be able to reach Logstash (or Elasticsearch, depending on where your client is meant to send logs to), make sure that:
 
 - You started the container with the right ports open (e.g. 5044 for Beats).
@@ -614,7 +627,7 @@ If this still seems to fail, then you should have a look at:
 
 - Your log-emitting client's logs.
 
-- ELK's logs, by `docker exec`'ing into the running container (see [Creating a dummy log entry](#creating-dummy-log-entry)) turning on stdout log (see [plugins-outputs-stdout](https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html)) and checking Logstash's logs (located in `/var/log/logstash`), Elasticsearch's logs (in `/var/log/elasticsearch`), and Kibana's logs (in `/var/log/kibana`).
+- ELK's logs, by `docker exec`'ing into the running container (see [Creating a dummy log entry](#creating-dummy-log-entry)), turning on stdout log (see [plugins-outputs-stdout](https://www.elastic.co/guide/en/logstash/current/plugins-outputs-stdout.html)), and checking Logstash's logs (located in `/var/log/logstash`), Elasticsearch's logs (in `/var/log/elasticsearch`), and Kibana's logs (in `/var/log/kibana`).
 
 	Note that ELK's logs are rotated daily and are deleted after a week, using logrotate. You can change this behaviour by overwriting the `elasticsearch`, `logstash` and `kibana` files in `/etc/logrotate.d`.  
 
