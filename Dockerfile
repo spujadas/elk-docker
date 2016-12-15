@@ -116,6 +116,7 @@ RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana 
 ADD ./elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 ADD ./elasticsearch-log4j2.properties /etc/elasticsearch/log4j2.properties
 ADD ./elasticsearch-jvm.options /etc/elasticsearch/jvm.options
+ADD ./elasticsearch-default /etc/default/elasticsearch
 
 
 ### configure Logstash
