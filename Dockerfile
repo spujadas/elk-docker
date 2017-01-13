@@ -137,6 +137,8 @@ ADD ./30-output.conf /etc/logstash/conf.d/30-output.conf
 ADD ./nginx.pattern ${LOGSTASH_HOME}/patterns/nginx
 RUN chown -R logstash:logstash ${LOGSTASH_HOME}/patterns
 
+# Fix permissions
+RUN chmod -R +r /etc/logstash
 
 ### configure logrotate
 
