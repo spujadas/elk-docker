@@ -9,7 +9,7 @@
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2016-12-04
+ENV REFRESHED_AT 2017-01-13
 
 
 ###############################################################################
@@ -117,6 +117,7 @@ ADD ./elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
 ADD ./elasticsearch-log4j2.properties /etc/elasticsearch/log4j2.properties
 ADD ./elasticsearch-jvm.options /etc/elasticsearch/jvm.options
 ADD ./elasticsearch-default /etc/default/elasticsearch
+RUN chmod -R +r /etc/elasticsearch
 
 
 ### configure Logstash
