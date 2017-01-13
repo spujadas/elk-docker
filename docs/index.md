@@ -53,7 +53,7 @@ For instance, the image containing Elasticsearch 1.7.3, Logstash 1.5.5, and Kiba
 
 The available tags are listed on [Docker Hub's sebp/elk image page](https://hub.docker.com/r/sebp/elk/) or GitHub repository page.
 
-By default, if not tag is indicated (or if using the tag `latest`), the latest version of the image will be pulled.
+By default, if no tag is indicated (or if using the tag `latest`), the latest version of the image will be pulled.
 
 ## Usage <a name="usage"></a>
 
