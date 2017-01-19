@@ -138,6 +138,12 @@ fi
 if [ "$KIBANA_START" -ne "1" ]; then
   echo "KIBANA_START is set to something different from 1, not starting..."
 else
+  # override NODE_OPTIONS variable if set
+  if [ ! -z "$NODE_OPTIONS" ]; then
+    awk -v LINE="NODE_OPTIONS=\"$NODE_OPTIONS\"" '{ sub(/^NODE_OPTIONS=.*/, LINE); print; }' /etc/init.d/kibana \
+        > /etc/init.d/kibana.new && mv /etc/init.d/kibana.new /etc/init.d/kibana && chmod +x /etc/init.d/kibana
+  fi
+
   service kibana start
   OUTPUT_LOGFILES+="/var/log/kibana/kibana5.log "
 fi

@@ -208,6 +208,8 @@ The following environment variables can be used to override the defaults used to
 
 - `LS_OPTS`: Logstash options (default: `"--auto-reload"` in images with tags `es231_l231_k450` and `es232_l232_k450`, `""` in `latest`; see [Breaking changes](#breaking-changes))
 
+- `NODE_OPTIONS`: Node options for Kibana (default: `"--max-old-space-size=250"`)
+
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size, Logstash with a 1GB heap size and Logstash's configuration auto-reload disabled:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
