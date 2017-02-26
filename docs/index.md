@@ -256,6 +256,8 @@ In the sample configuration file, make sure that you replace `elk` in `elk:5044`
 
 You'll also need to copy the `logstash-beats.crt` file (which contains the certificate authority's certificate – or server certificate as the certificate is self-signed – for Logstash's Beats input plugin; see [Security considerations](#security-considerations) for more information on certificates) from the [source repository of the ELK image](https://github.com/spujadas/elk-docker) to `/etc/pki/tls/certs/logstash-beats.crt`.
 
+**Note** – Alternatively, when using Filebeat on a Windows machine, instead of using the `certificate_authorities` configuration option, the certificate from `logstash-beats.crt` can be installed in Windows' Trusted Root Certificate Authorities store. 
+
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
 
 Before starting Filebeat for the first time, run this command (replace `elk` with the appropriate hostname) to load the default index template in Elasticsearch:
