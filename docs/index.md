@@ -543,6 +543,8 @@ If on the other hand you want to disable certificate-based server authentication
 
 Dummy server authentication certificates (`/etc/pki/tls/certs/logstash-*.crt`) and private keys (`/etc/pki/tls/private/logstash-*.key`) are included in the image.
 
+**Note** – For Logstash 2.4.0 a PKCS#8-formatted private key must be used (see *[Breaking changes](#breaking-changes)* for guidance).
+
 The certificates are assigned to hostname `*`, which means that they will work if you are using a single-part (i.e. no dots) domain name to reference the server from your client.
 
 **Example** – In your client (e.g. Filebeat), sending logs to hostname `elk` will work, `elk.mydomain.com` will not (will produce an error along the lines of `x509: certificate is valid for *, not elk.mydomain.com`), neither will an IP address such as 192.168.0.1 (expect `x509: cannot validate certificate for 192.168.0.1 because it doesn't contain any IP SANs`).
@@ -662,6 +664,16 @@ Here is the list of breaking changes that may have side effects when upgrading t
 	*Applies to tags: `es500_l500_k500` and later.*
 
 	Breaking changes are introduced in version 5 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/master/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/master/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/master/releasenotes.html).
+
+- **Private keys in PKCS#8 format**
+
+	*Applies to tags: `es240_l240_k460` and `es241_l240_k461`.*
+
+	In Logstash version 2.4.x, the private keys used by Logstash with the Beats input [are expected to be in PKCS#8 format](https://github.com/elastic/logstash/issues/5865). To convert the private key (`logstash-beats.key`) from its default PKCS#1 format to PKCS#8, use the following command: 
+
+		$ openssl pkcs8 -in logstash-beats.key -topk8 -nocrypt -out logstash-beats.p8
+
+	and point to the `logstash-beats.p8` file in the `ssl_certificate` option of Logstash's `02-beats-input.conf` configuration file.
 
 - **Logstash forwarder**
 
