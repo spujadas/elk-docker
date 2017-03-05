@@ -604,7 +604,11 @@ Here are a few pointers to help you troubleshoot your containerised ELK.
 
 - If Elasticsearch's logs are dumped, then read the recommendations in the logs and consider that they *must* be applied.
 
-	In particular, the message `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]` means that the host's limits on mmap counts **must** be set to at least 262144. Use `sysctl vm.max_map_count` on the host to view the current value, and see [Elasticsearch's documentation on virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/vm-max-map-count.html#vm-max-map-count) for guidance on how to change this value. Note that the limits **must be changed on the host**; they cannot be changed from within a container.
+	In particular, the message `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]` means that the host's limits on mmap counts **must** be set to at least 262144.
+
+	On Linux, use `sysctl vm.max_map_count` on the host to view the current value, and see [Elasticsearch's documentation on virtual memory](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/vm-max-map-count.html#vm-max-map-count) for guidance on how to change this value. Note that the limits **must be changed on the host**; they cannot be changed from within a container.
+
+	If using Docker for Mac, then start the container with the `MAX_MAP_COUNT` environment variable set to at least 262144 (using e.g. `docker`'s `-e` option) to make Elasticsearch set the limits on mmap counts at start-up time.
 
 - If Elasticsearch's logs are *not* dumped (i.e. you get the following message: `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`), then Elasticsearch did not have enough memory to start.
 
