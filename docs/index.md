@@ -679,7 +679,7 @@ Here is the list of breaking changes that may have side effects when upgrading t
 
 		$ openssl pkcs8 -in logstash-beats.key -topk8 -nocrypt -out logstash-beats.p8
 
-	and point to the `logstash-beats.p8` file in the `ssl_certificate` option of Logstash's `02-beats-input.conf` configuration file.
+	and point to the `logstash-beats.p8` file in the `ssl_key` option of Logstash's `02-beats-input.conf` configuration file.
 
 - **Logstash forwarder**
 
