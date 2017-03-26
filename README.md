@@ -6,7 +6,9 @@ This Docker image provides a convenient centralised log server and log managemen
 
 The following tags are available:
 
-- `latest`, `521`: Elasticsearch 5.2.1, Logstash 5.2.1, and Kibana 5.2.1.
+- `latest`, `522`: Elasticsearch 5.2.2, Logstash 5.2.2, and Kibana 5.2.2.
+
+- `521`: Elasticsearch 5.2.1, Logstash 5.2.1, and Kibana 5.2.1.
 
 - `520`: Elasticsearch 5.2.0, Logstash 5.2.0, and Kibana 5.2.0.
 
