@@ -36,6 +36,9 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
 	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
 - [Troubleshooting](#troubleshooting)
+	- [If Elasticsearch isn't starting...](#es-not-starting)
+	- [If your log-emitting client doesn't seem to be able to reach Logstash...](#logstash-unreachable)
+	- [Additional tips](#general-troubleshooting)
 - [Reporting issues](#reporting-issues)
 - [Breaking changes](#breaking-changes)
 - [References](#references)
@@ -652,7 +655,9 @@ As a reminder (see [Prerequisites](#prerequisites)), you should use no less than
 
 Here are a few pointers to help you troubleshoot your containerised ELK.
 
-**If Elasticsearch isn't starting**, and the suggestions listed in [Frequently encountered issues](#frequent-issues) don't help, then an additional way of working out why Elasticsearch isn't starting is to:
+### If Elasticsearch isn't starting... <a name="es-not-starting"></a>
+
+If the suggestions listed in [Frequently encountered issues](#frequent-issues) don't help, then an additional way of working out why Elasticsearch isn't starting is to:
  
 - Start a container with the `bash` command:
 	
@@ -665,15 +670,27 @@ Here are a few pointers to help you troubleshoot your containerised ELK.
 			-Edefault.path.data=/var/lib/elasticsearch \
 			-Edefault.path.conf=/etc/elasticsearch 
 
-**If your log-emitting client doesn't seem to be able to reach Logstash** (or Elasticsearch, depending on where your client is meant to send logs to), make sure that:
+### If your log-emitting client doesn't seem to be able to reach Logstash... <a name="logstash-unreachable"></a>
+
+**Note** – Similar troubleshooting steps are applicable in set-ups where logs are sent directly to Elasticsearch.
+
+Make sure that:
 
 - You started the container with the right ports open (e.g. 5044 for Beats).
 
 - The ports are reachable from the client machine (e.g. make sure the appropriate rules have been set up on your firewalls to authorise outbound flows from your client and inbound flows on your ELK-hosting machine).
 
-- Your client is configured to connect to Logstash using TLS (or SSL) and that it trusts Logstash's self-signed certificate (or certificate authority if you replaced the default certificate with a proper certificate – see [Security considerations](#security-considerations)).   
+- Your client is configured to connect to Logstash using TLS (or SSL) and that it trusts Logstash's self-signed certificate (or certificate authority if you replaced the default certificate with a proper certificate – see [Security considerations](#security-considerations)).
 
-**If this still seems to fail**, then you should have a look at:
+  	To check if Logstash is authenticating using the right certificate, check for errors in the output of
+
+		$ openssl s_client -connect localhost:5044 -CAfile logstash-beats.crt
+
+	where `logstash-beats.crt` is the name of the file containing Logstash's self-signed certificate.
+
+### Additional tips <a name="general-troubleshooting"></a>
+
+If the suggestions given above don't solve your issue, then you should have a look at:
 
 - Your log-emitting client's logs.
 
