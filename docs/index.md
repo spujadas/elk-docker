@@ -259,6 +259,8 @@ Forwarding logs from a host relies on a forwarding agent that collects logs (e.g
 
 Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section for links to detailed instructions).
 
+**Note** – Make sure that the version of Filebeat is the same as the version of the ELK image.
+
 #### Example Filebeat set-up and configuration
 
 **Note** – The `nginx-filebeat` subdirectory of the [source Git repository on GitHub](https://github.com/spujadas/elk-docker) contains a sample `Dockerfile` which enables you to create a Docker image that implements the steps below.
@@ -677,6 +679,8 @@ If the suggestions listed in [Frequently encountered issues](#frequent-issues) d
 Make sure that:
 
 - You started the container with the right ports open (e.g. 5044 for Beats).
+
+- If you are using Filebeat, its version is the same as the version of the ELK image/stack.
 
 - The ports are reachable from the client machine (e.g. make sure the appropriate rules have been set up on your firewalls to authorise outbound flows from your client and inbound flows on your ELK-hosting machine).
 
