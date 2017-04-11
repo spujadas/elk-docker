@@ -59,10 +59,10 @@ if [ "$ELASTICSEARCH_START" -ne "1" ]; then
 else
   # override ES_HEAP_SIZE variable if set
   if [ ! -z "$ES_HEAP_SIZE" ]; then
-    awk -v LINE="-Xmx$ES_HEAP_SIZE" '{ sub(/^.Xmx.*/, LINE); print; }' /etc/elasticsearch/jvm.options \
-        > /etc/elasticsearch/jvm.options.new && mv /etc/elasticsearch/jvm.options.new /etc/elasticsearch/jvm.options
-    awk -v LINE="-Xms$ES_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' /etc/elasticsearch/jvm.options \
-        > /etc/elasticsearch/jvm.options.new && mv /etc/elasticsearch/jvm.options.new /etc/elasticsearch/jvm.options
+    awk -v LINE="-Xmx$ES_HEAP_SIZE" '{ sub(/^.Xmx.*/, LINE); print; }' /opt/elasticsearch/config/jvm.options \
+        > /opt/elasticsearch/config/jvm.options.new && mv /opt/elasticsearch/config/jvm.options.new /opt/elasticsearch/config/jvm.options
+    awk -v LINE="-Xms$ES_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' /opt/elasticsearch/config/jvm.options \
+        > /opt/elasticsearch/config/jvm.options.new && mv /opt/elasticsearch/config/jvm.options.new /opt/elasticsearch/config/jvm.options
   fi
   # override ES_JAVA_OPTS variable if set
   if [ ! -z "$ES_JAVA_OPTS" ]; then
