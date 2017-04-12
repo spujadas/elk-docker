@@ -44,6 +44,7 @@ RUN rm /var/log/nginx/access.log /var/log/nginx/error.log
 
 # config file
 ADD filebeat.yml /etc/filebeat/filebeat.yml
+RUN chmod 644 /etc/filebeat/filebeat.yml
 
 # CA cert
 RUN mkdir -p /etc/pki/tls/certs
