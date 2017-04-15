@@ -716,6 +716,12 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 
 Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
 
+- **`ES_HEAP_SIZE` and `LS_HEAP_SIZE`**
+
+	*Applies to tags: `502` to `530`.*
+
+	Overriding the `ES_HEAP_SIZE` and `LS_HEAP_SIZE` environment variables has no effect on the heap size used by Elasticsearch and Logstash (see issue [#129](https://github.com/spujadas/elk-docker/issues/129)).
+
 - **Elasticsearch home directory**
 
 	*Applies to tags: `502` and later.*

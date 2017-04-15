@@ -123,8 +123,10 @@ if [ "$LOGSTASH_START" -ne "1" ]; then
 else
   # override LS_HEAP_SIZE variable if set
   if [ ! -z "$LS_HEAP_SIZE" ]; then
-    awk -v LINE="LS_HEAP_SIZE=\"$LS_HEAP_SIZE\"" '{ sub(/^LS_HEAP_SIZE=.*/, LINE); print; }' /etc/init.d/logstash \
-        > /etc/init.d/logstash.new && mv /etc/init.d/logstash.new /etc/init.d/logstash && chmod +x /etc/init.d/logstash
+    awk -v LINE="-Xmx$LS_HEAP_SIZE" '{ sub(/^.Xmx.*/, LINE); print; }' /opt/logstash/config/jvm.options \
+        > /opt/logstash/config/jvm.options.new && mv /opt/logstash/config/jvm.options.new /opt/logstash/config/jvm.options
+    awk -v LINE="-Xms$LS_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' /opt/logstash/config/jvm.options \
+        > /opt/logstash/config/jvm.options.new && mv /opt/logstash/config/jvm.options.new /opt/logstash/config/jvm.options
   fi
 
   # override LS_OPTS variable if set
