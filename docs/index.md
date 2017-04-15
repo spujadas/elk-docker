@@ -718,7 +718,7 @@ Here is the list of breaking changes that may have side effects when upgrading t
 
 - **`ES_HEAP_SIZE` and `LS_HEAP_SIZE`**
 
-	*Applies to tags: `502` to `530`.*
+	*Applies to tags: `502` to `522`.*
 
 	Overriding the `ES_HEAP_SIZE` and `LS_HEAP_SIZE` environment variables has no effect on the heap size used by Elasticsearch and Logstash (see issue [#129](https://github.com/spujadas/elk-docker/issues/129)).
 
