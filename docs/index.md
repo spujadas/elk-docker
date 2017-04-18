@@ -245,6 +245,12 @@ The following environment variables can be used to override the defaults used to
 
 - `NODE_OPTIONS`: Node options for Kibana (default: `"--max-old-space-size=250"`)
 
+- `MAX_MAP_COUNT`: limit on mmap counts (default: system default)
+
+	**Warning** – This setting is system-dependent: not all systems allow this limit to be set from within the container, you may need to set this from the host before starting the container (see [Prerequisites](#prerequisites)). 
+
+- `MAX_OPEN_FILES`: maximum number of open files (default: system default; Elasticsearch needs this amount to be equal to at least 65536)
+
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size, Logstash with a 1GB heap size and Logstash's configuration auto-reload disabled:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
