@@ -126,6 +126,8 @@ RUN chmod -R +r /etc/elasticsearch
 RUN mkdir -p /etc/pki/tls/certs && mkdir /etc/pki/tls/private
 ADD ./logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
+ADD ./logstash-forwarder.crt /etc/pki/tls/certs/logstash-forwarder.crt
+ADD ./logstash-forwarder.key /etc/pki/tls/private/logstash-forwarder.key
 
 # filters
 ADD ./02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
