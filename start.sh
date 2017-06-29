@@ -44,6 +44,24 @@ fi
 
 ## start services as needed
 
+### RabbitMQ
+nohup bash -c 'rabbitmq-server' > /var/log/rabbitmq/output.log 2>&1 &
+counter=0
+RMQ_CONNECT_RETRY=10
+while [ ! "$(curl localhost:5672 2> /dev/null)" -a $counter -lt $RMQ_CONNECT_RETRY  ]; do
+  sleep 1
+  ((counter++))
+  echo "waiting for RabbitMQ to be up ($counter/$RMQ_CONNECT_RETRY)"
+done
+if [ ! "$(curl localhost:5672 2> /dev/null)" ]; then
+  echo "Couln't start RabbitMQ. Exiting."
+  echo "RabbitMQ log follows below."
+  cat /var/log/rabbitmq/output.log
+  exit 1
+fi
+
+OUTPUT_LOGFILES+="/var/log/rabbitmq/output.log "
+
 ### crond
 
 service cron start

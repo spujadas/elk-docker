@@ -5,12 +5,16 @@
 # docker build -t <repo-user>/elk .
 
 # Run with:
-# docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
+# docker run -p 5601:5601 -p 9200:9200 -p 9000:9000 -it --name elk <repo-user>/elk
 
 FROM phusion/baseimage
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2017-01-13
+MAINTAINER Dan Maglasang
+ENV REFRESHED_AT 2017-06-28
 
+###############################################################################
+#                                ELASTICSEARCH
+###############################################################################
 
 ###############################################################################
 #                                INSTALLATION
@@ -122,20 +126,9 @@ RUN chmod -R +r /etc/elasticsearch
 
 ### configure Logstash
 
-# certs/keys for Beats and Lumberjack input
-RUN mkdir -p /etc/pki/tls/certs && mkdir /etc/pki/tls/private
-ADD ./logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
-ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
-
 # filters
-ADD ./02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
-ADD ./10-syslog.conf /etc/logstash/conf.d/10-syslog.conf
-ADD ./11-nginx.conf /etc/logstash/conf.d/11-nginx.conf
 ADD ./30-output.conf /etc/logstash/conf.d/30-output.conf
-
-# patterns
-ADD ./nginx.pattern ${LOGSTASH_HOME}/patterns/nginx
-RUN chown -R logstash:logstash ${LOGSTASH_HOME}/patterns
+RUN rm -rf /opt/logstash/data/ && mkdir /opt/logstash/data/ && chown logstash:logstash /opt/logstash/data/
 
 # Fix permissions
 RUN chmod -R +r /etc/logstash
@@ -162,7 +155,110 @@ ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
 ADD ./start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-EXPOSE 5601 9200 9300 5044
+EXPOSE 5601 9200 9300
 VOLUME /var/lib/elasticsearch
+
+###############################################################################
+#                                END ELASTICSEARCH
+###############################################################################
+
+
+
+###############################################################################
+#                                RABBITMQ
+###############################################################################
+
+###############################################################################
+#                                INSTALLATION
+###############################################################################
+
+RUN set -ex; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		gnupg2 \
+		dirmngr \
+	; \
+	rm -rf /var/lib/apt/lists/*
+
+# add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
+RUN groupadd -r rabbitmq && useradd -r -d /var/lib/rabbitmq -m -g rabbitmq rabbitmq
+
+# install Erlang
+RUN set -ex; \
+	apt-get update; \
+# "erlang-base-hipe" is optional (and only supported on a few arches)
+# so, only install it if it's available for our current arch
+	if apt-cache show erlang-base-hipe 2>/dev/null | grep -q 'Package: erlang-base-hipe'; then \
+		apt-get install -y --no-install-recommends \
+			erlang-base-hipe \
+		; \
+	fi; \
+# we start with "erlang-base-hipe" because it and "erlang-base" (non-hipe) are exclusive
+	apt-get install -y --no-install-recommends \
+		erlang-asn1 \
+		erlang-crypto \
+		erlang-eldap \
+		erlang-inets \
+		erlang-mnesia \
+		erlang-nox \
+		erlang-os-mon \
+		erlang-public-key \
+		erlang-ssl \
+		erlang-xmerl \
+	; \
+	rm -rf /var/lib/apt/lists/*
+
+# get logs to stdout (thanks @dumbbell for pushing this upstream! :D)
+ENV RABBITMQ_LOGS=- RABBITMQ_SASL_LOGS=-
+# https://github.com/rabbitmq/rabbitmq-server/commit/53af45bf9a162dec849407d114041aad3d84feaf
+
+# http://www.rabbitmq.com/install-debian.html
+# "Please note that the word testing in this line refers to the state of our release of RabbitMQ, not any particular Debian distribution."
+RUN set -ex; \
+	key='0A9AF2115F4687BD29803A206B73A36E6026DFCA'; \
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
+	gpg --export "$key" > /etc/apt/trusted.gpg.d/rabbitmq.gpg; \
+	rm -rf "$GNUPGHOME"; \
+	apt-key list
+RUN echo 'deb http://www.rabbitmq.com/debian testing main' > /etc/apt/sources.list.d/rabbitmq.list
+
+ENV RABBITMQ_VERSION 3.6.10
+ENV RABBITMQ_DEBIAN_VERSION 3.6.10-1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+		rabbitmq-server=$RABBITMQ_DEBIAN_VERSION \
+	&& rm -rf /var/lib/apt/lists/*
+
+###############################################################################
+#                                CONFIGURATION
+###############################################################################
+
+# /usr/sbin/rabbitmq-server has some irritating behavior, and only exists to "su - rabbitmq /usr/lib/rabbitmq/bin/rabbitmq-server ..."
+ENV PATH /usr/lib/rabbitmq/bin:$PATH
+
+# set home so that any `--user` knows where to put the erlang cookie
+ENV HOME /var/lib/rabbitmq
+
+RUN mkdir -p /var/lib/rabbitmq /etc/rabbitmq \
+	&& chown -R rabbitmq:rabbitmq /var/lib/rabbitmq /etc/rabbitmq \
+	&& chmod -R 777 /var/lib/rabbitmq /etc/rabbitmq
+VOLUME /var/lib/rabbitmq
+
+# add a symlink to the .erlang.cookie in /root so we can "docker exec rabbitmqctl ..." without gosu
+RUN ln -sf /var/lib/rabbitmq/.erlang.cookie /root/
+
+RUN ln -sf /usr/lib/rabbitmq/lib/rabbitmq_server-$RABBITMQ_VERSION/plugins /plugins
+
+ADD ./rabbitmq.config /etc/rabbitmq/rabbitmq.config
+RUN chown rabbitmq:rabbitmq /etc/rabbitmq/rabbitmq.config
+
+EXPOSE 4369 5671 5672 25672 15671 15672
+
+RUN rabbitmq-plugins enable --offline rabbitmq_management
+
+###############################################################################
+#                                END RABBITMQ
+###############################################################################
 
 CMD [ "/usr/local/bin/start.sh" ]
