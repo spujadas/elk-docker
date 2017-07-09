@@ -6,9 +6,11 @@ This Docker image provides a convenient centralised log server and log managemen
 
 The following tags are available:
 
-- `latest`, `542`: ELK 5.4.2.
+- `latest`, `543`: ELK 5.4.3.
 
-- `540`: ELK 5.4.1.
+- `542`: ELK 5.4.2.
+
+- `541`: ELK 5.4.1.
 
 - `540`: ELK 5.4.0.
 
