@@ -13,6 +13,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
 	- [Starting services selectively](#selective-services)
 	- [Overriding start-up variables](#overriding-variables)
+	- [Pre-hooks](#pre-hooks)
 - [Forwarding logs](#forwarding-logs)
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
 	- [Linking a Docker container to the ELK container](#linking-containers)
@@ -256,6 +257,18 @@ As an illustration, the following command starts the stack, running Elasticsarch
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
 		-e ES_HEAP_SIZE="2g" -e LS_HEAP_SIZE="1g" -e LS_OPTS="--no-auto-reload" \
 		--name elk sebp/elk
+
+### Pre-hooks <a name="pre-hooks"></a>
+
+Before starting the ELK services, the container will run the script at `/usr/local/bin/elk-pre-hooks.sh` if it exists and is executable.
+
+This can in particular be used to expose custom environment variables (in addition to the [default ones supported by the image](#overriding-variables)) to Elasticsearch and Logstash by amending their corresponding `/etc/default` files.
+
+For instance, to expose the custom `MY_CUSTOM_VAR` environment variable to Elasticsearch, add an executable `/usr/local/bin/elk-pre-hooks.sh` to the container (e.g. by `ADD`-ing it to a custom `Dockerfile` that extends the base image, or by bind-mounting the file at runtime), with the following contents:
+
+	cat << EOF >> /etc/default/elasticsearch
+	MY_CUSTOM_VAR=$MY_CUSTOM_VAR
+	EOF
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 

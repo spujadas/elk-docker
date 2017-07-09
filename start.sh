@@ -42,6 +42,13 @@ if [ ! -z "$TZ" ]; then
 fi
 
 
+## run pre-hooks
+
+if [ -x /usr/local/bin/elk-pre-hooks.sh ]; then
+  . /usr/local/bin/elk-pre-hooks.sh
+fi
+
+
 ## start services as needed
 
 ### crond
