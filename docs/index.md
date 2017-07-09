@@ -402,8 +402,8 @@ A `Dockerfile` like the following will extend the base image and install the [Ge
 	ENV ES_HOME /opt/elasticsearch
 	WORKDIR ${ES_HOME}
 
-	RUN gosu elasticsearch bin/elasticsearch-plugin install \
-	    -Edefault.path.conf=/etc/elasticsearch ingest-geoip
+	RUN CONF_DIR=/etc/elasticsearch gosu elasticsearch bin/elasticsearch-plugin \
+		install ingest-geoip
 
 You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image.
 
