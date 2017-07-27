@@ -160,15 +160,10 @@ Open a shell prompt in the container and type (replacing `<container-name>` with
 
 At the prompt, enter:
 
-_(since Logstash 2.0.0)_
+	# /opt/logstash/bin/logstash --path.data /tmp/logstash/data \
+		-e 'input { stdin { } } output { elasticsearch { hosts => ["localhost"] } }'
 
-	# /opt/logstash/bin/logstash -e 'input { stdin { } } output { elasticsearch { hosts => ["localhost"] } }'
-
-_(before Logstash 2.0.0)_
-
-	# /opt/logstash/bin/logstash -e 'input { stdin { } } output { elasticsearch { host => localhost } }'
-
-Wait for Logstash to start (as indicated by the message `Logstash startup completed`), then type some dummy text followed by Enter to create a log entry:
+Wait for Logstash to start (as indicated by the message `The stdin plugin is now waiting for input:`), then type some dummy text followed by Enter to create a log entry:
 
 	this is a dummy entry
 
