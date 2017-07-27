@@ -268,6 +268,7 @@ For instance, to expose the custom `MY_CUSTOM_VAR` environment variable to Elast
 
 	cat << EOF >> /etc/default/elasticsearch
 	MY_CUSTOM_VAR=$MY_CUSTOM_VAR
+	export MY_CUSTOM_VAR 
 	EOF
 
 ## Forwarding logs <a name="forwarding-logs"></a>
