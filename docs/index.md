@@ -247,11 +247,10 @@ The following environment variables can be used to override the defaults used to
 
 - `MAX_OPEN_FILES`: maximum number of open files (default: system default; Elasticsearch needs this amount to be equal to at least 65536)
 
-As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size, Logstash with a 1GB heap size and Logstash's configuration auto-reload disabled:
+As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size and Logstash with a 1GB heap size:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
-		-e ES_HEAP_SIZE="2g" -e LS_HEAP_SIZE="1g" -e LS_OPTS="--no-auto-reload" \
-		--name elk sebp/elk
+		-e ES_HEAP_SIZE="2g" -e LS_HEAP_SIZE="1g" --name elk sebp/elk
 
 ### Pre-hooks <a name="pre-hooks"></a>
 
