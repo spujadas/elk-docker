@@ -13,7 +13,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
 	- [Starting services selectively](#selective-services)
 	- [Overriding start-up variables](#overriding-variables)
-	- [Pre-hooks](#pre-hooks)
+	- [Pre-hooks and post-hooks](#pre-post-hooks)
 - [Forwarding logs](#forwarding-logs)
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
 	- [Linking a Docker container to the ELK container](#linking-containers)
@@ -247,12 +247,15 @@ The following environment variables can be used to override the defaults used to
 
 - `MAX_OPEN_FILES`: maximum number of open files (default: system default; Elasticsearch needs this amount to be equal to at least 65536)
 
+- `KIBANA_CONNECT_RETRY`: number of seconds to wait for Kibana to be up before running the post-hook script (see [Pre-hooks and post-hooks](#pre-post-hooks)) (default: `30`) 
+
+
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size and Logstash with a 1GB heap size:
 
 	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
 		-e ES_HEAP_SIZE="2g" -e LS_HEAP_SIZE="1g" --name elk sebp/elk
 
-### Pre-hooks <a name="pre-hooks"></a>
+### Pre-hooks and post-hooks<a name="pre-post-hooks"></a>
 
 Before starting the ELK services, the container will run the script at `/usr/local/bin/elk-pre-hooks.sh` if it exists and is executable.
 
@@ -264,6 +267,10 @@ For instance, to expose the custom `MY_CUSTOM_VAR` environment variable to Elast
 	MY_CUSTOM_VAR=$MY_CUSTOM_VAR
 	export MY_CUSTOM_VAR 
 	EOF
+
+After starting the ELK services, the container will run the script at `/usr/local/bin/elk-post-hooks.sh` if it exists and is executable.
+
+This can for instance be used to add index templates to Elasticsearch or to add index patterns to Kibana after the services have started. 
 
 ## Forwarding logs <a name="forwarding-logs"></a>
 

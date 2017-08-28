@@ -43,7 +43,6 @@ fi
 
 
 ## run pre-hooks
-
 if [ -x /usr/local/bin/elk-pre-hooks.sh ]; then
   . /usr/local/bin/elk-pre-hooks.sh
 fi
@@ -186,6 +185,37 @@ if [ "$ELASTICSEARCH_START" -ne "1" ] && [ "$LOGSTASH_START" -ne "1" ] \
   >&2 echo "No services started. Exiting."
   exit 1
 fi
+
+
+## run post-hooks
+if [ -x /usr/local/bin/elk-post-hooks.sh ]; then
+  ### if Kibana was started...
+  if [ "$KIBANA_START" -eq "1" ]; then
+
+  ### ... then wait for Kibana to be up first to ensure that .kibana index is
+  ### created before the of post-hooks are executed
+    # set number of retries (default: 30, override using KIBANA_CONNECT_RETRY env var)
+    if ! [[ $KIBANA_CONNECT_RETRY =~ $re_is_numeric ]] ; then
+       KIBANA_CONNECT_RETRY=30
+    fi
+
+    counter=0
+    while [ ! "$(curl localhost:5601 2> /dev/null)" -a $counter -lt $KIBANA_CONNECT_RETRY  ]; do
+      sleep 1
+      ((counter++))
+      echo "waiting for Kibana to be up ($counter/$KIBANA_CONNECT_RETRY)"
+    done
+    if [ ! "$(curl localhost:5601 2> /dev/null)" ]; then
+      echo "Couln't start Kibana. Exiting."
+      echo "Kibana log follows below."
+      cat /var/log/kibana/kibana5.log
+      exit 1
+    fi
+  fi
+
+  . /usr/local/bin/elk-post-hooks.sh
+fi
+
 
 touch $OUTPUT_LOGFILES
 tail -f $OUTPUT_LOGFILES &
