@@ -63,6 +63,9 @@ fi
 if [ "$ELASTICSEARCH_START" -ne "1" ]; then
   echo "ELASTICSEARCH_START is set to something different from 1, not starting..."
 else
+  # update permissions of ES data directory
+  chown -R elasticsearch:elasticsearch /var/lib/elasticsearch
+
   # override ES_HEAP_SIZE variable if set
   if [ ! -z "$ES_HEAP_SIZE" ]; then
     awk -v LINE="-Xmx$ES_HEAP_SIZE" '{ sub(/^.Xmx.*/, LINE); print; }' /opt/elasticsearch/config/jvm.options \
