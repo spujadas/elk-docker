@@ -16,7 +16,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Pre-hooks and post-hooks](#pre-post-hooks)
 - [Forwarding logs](#forwarding-logs)
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
-	- [Linking a Docker container to the ELK container](#linking-containers)
+	- [Connecting a Docker container to an ELK container running on the same host](#connecting-containers)
 - [Building the image](#building-image)
 - [Tweaking the image](#tweaking-image)
 	- [Updating Logstash's configuration](#updating-logstash-configuration)
@@ -330,11 +330,32 @@ Start Filebeat:
 
 In order to process multiline log entries (e.g. stack traces) as a single event using Filebeat, you may want to consider [Filebeat's multiline option](https://www.elastic.co/blog/beats-1-1-0-and-winlogbeat-released), which was introduced in Beats 1.1.0, as a handy alternative to altering Logstash's configuration files to use [Logstash's multiline codec](https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html).
 
-### Linking a Docker container to the ELK container <a name="linking-containers"></a>
+### Connecting a Docker container to an ELK container running on the same host<a name="connecting-containers"></a>
 
-If you want to forward logs from a Docker container to the ELK container, then you need to link the two containers.
+If you want to forward logs from a Docker container to the ELK container on a host, then you need to connect the two containers.
 
 **Note** – The log-emitting Docker container must have Filebeat running in it for this to work.
+
+First of all, create an isolated, user-defined `bridge` network (we'll call it `elknet`):
+
+	$ sudo docker network create -d bridge elknet
+
+Now start the ELK container, giving it a name (e.g. `elk`) using the `--name` option, and specifying the network it must connect to (`elknet` in this example):
+
+	$ sudo docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it \
+		--name elk --network=elknet sebp/elk
+
+Then start the log-emitting container on the same network (replacing `your/image` with the name of the Filebeat-enabled image you're forwarding logs from):
+
+	$ sudo docker run -p 80:80 -it --network=elknet your/image
+
+From the perspective of the log emitting container, the ELK container is now known as `elk`, which is the hostname to be used under `hosts` in the `filebeat.yml` configuration file.
+
+For more information on networking with Docker, see [Docker's documentation on working with `network` commands](https://docs.docker.com/engine/userguide/networking/work-with-networks/). 
+
+#### Linking containers without a user-defined network
+
+_This is the legacy way of connecting containers over the Docker's default `bridge` network, using links, which are a [deprecated legacy feature of Docker which may eventually be removed](https://docs.docker.com/engine/userguide/networking/default_network/dockerlinks/)._
 
 First of all, give the ELK container a name (e.g. `elk`) using the `--name` option:
 
