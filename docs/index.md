@@ -186,7 +186,7 @@ If you browse to `http://<your-host>:9200/_search?pretty` (e.g. [http://localhos
 
 You can now browse to Kibana's web interface at `http://<your-host>:5601` (e.g. [http://localhost:5601](http://localhost:5601) for a local native instance of Docker).
 
-Make sure that the drop-down "Time-field name" field is pre-populated with the value `@timestamp`, then click on "Create", and you're good to go.
+Make sure that the drop-down "Time Filter field name" field is pre-populated with the value `@timestamp`, then click on "Create", and you're good to go.
 
 ### Starting services selectively <a name="selective-services"></a>
 
