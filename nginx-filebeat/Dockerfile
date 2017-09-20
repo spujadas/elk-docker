@@ -1,5 +1,5 @@
 # Dockerfile to illustrate how Filebeat can be used with nginx
-# Filebeat 5.5.2
+# Filebeat 5.5.3
 
 # Build with:
 # docker build -t filebeat-nginx-example .
@@ -19,7 +19,7 @@ ENV REFRESHED_AT 2016-11-04
 
 ### install Filebeat
 
-ENV FILEBEAT_VERSION 5.5.2
+ENV FILEBEAT_VERSION 5.5.3
 
 RUN apt-get update -qq \
  && apt-get install -qqy curl \
