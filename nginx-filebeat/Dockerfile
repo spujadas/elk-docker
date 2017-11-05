@@ -1,5 +1,5 @@
 # Dockerfile to illustrate how Filebeat can be used with nginx
-# Filebeat 6.0.0-rc1
+# Filebeat 6.0.0-rc2
 
 # Build with:
 # docker build -t filebeat-nginx-example .
@@ -23,7 +23,7 @@ RUN apt-get update -qq \
  && apt-get install -qqy curl \
  && apt-get clean
 
-ENV FILEBEAT_VERSION 6.0.0-rc1
+ENV FILEBEAT_VERSION 6.0.0-rc2
 
 RUN curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-${FILEBEAT_VERSION}-amd64.deb \
  && dpkg -i filebeat-${FILEBEAT_VERSION}-amd64.deb \
