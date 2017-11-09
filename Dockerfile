@@ -115,11 +115,11 @@ RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana 
 ### configure Elasticsearch
 
 ADD ./elasticsearch.yml ${ES_PATH_CONF}/elasticsearch.yml
-ADD ./elasticsearch-log4j2.properties ${ES_PATH_CONF}/log4j2.properties
-ADD ./elasticsearch-jvm.options ${ES_PATH_CONF}/jvm.options
 ADD ./elasticsearch-default /etc/default/elasticsearch
-RUN chmod -R +r ${ES_PATH_CONF}
-
+RUN cp ${ES_HOME}/config/log4j2.properties ${ES_HOME}/config/jvm.options \
+    ${ES_PATH_CONF} \
+ && chown -R elasticsearch:elasticsearch ${ES_PATH_CONF} \
+ && chmod -R +r ${ES_PATH_CONF}
 
 ### configure Logstash
 
