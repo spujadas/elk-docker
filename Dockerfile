@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana 5.6.3
+# Elasticsearch, Logstash, Kibana 6.0.0
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -39,7 +39,7 @@ RUN set -x \
  && set +x
 
 
-ENV ELK_VERSION 5.6.3
+ENV ELK_VERSION 6.0.0
 
 ### install Elasticsearch
 
@@ -48,6 +48,7 @@ ENV ES_HOME /opt/elasticsearch
 ENV ES_PACKAGE elasticsearch-${ES_VERSION}.tar.gz
 ENV ES_GID 991
 ENV ES_UID 991
+ENV ES_PATH_CONF /etc/elasticsearch
 
 RUN mkdir ${ES_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} \
@@ -55,8 +56,8 @@ RUN mkdir ${ES_HOME} \
  && rm -f ${ES_PACKAGE} \
  && groupadd -r elasticsearch -g ${ES_GID} \
  && useradd -r -s /usr/sbin/nologin -M -c "Elasticsearch service user" -u ${ES_UID} -g elasticsearch elasticsearch \
- && mkdir -p /var/log/elasticsearch /etc/elasticsearch /etc/elasticsearch/scripts /var/lib/elasticsearch \
- && chown -R elasticsearch:elasticsearch ${ES_HOME} /var/log/elasticsearch /var/lib/elasticsearch /etc/elasticsearch
+ && mkdir -p /var/log/elasticsearch ${ES_PATH_CONF} ${ES_PATH_CONF}/scripts /var/lib/elasticsearch \
+ && chown -R elasticsearch:elasticsearch ${ES_HOME} /var/log/elasticsearch /var/lib/elasticsearch ${ES_PATH_CONF}
 
 ADD ./elasticsearch-init /etc/init.d/elasticsearch
 RUN sed -i -e 's#^ES_HOME=$#ES_HOME='$ES_HOME'#' /etc/init.d/elasticsearch \
@@ -113,12 +114,12 @@ RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana 
 
 ### configure Elasticsearch
 
-ADD ./elasticsearch.yml /etc/elasticsearch/elasticsearch.yml
-ADD ./elasticsearch-log4j2.properties /etc/elasticsearch/log4j2.properties
-ADD ./elasticsearch-jvm.options /etc/elasticsearch/jvm.options
+ADD ./elasticsearch.yml ${ES_PATH_CONF}/elasticsearch.yml
 ADD ./elasticsearch-default /etc/default/elasticsearch
-RUN chmod -R +r /etc/elasticsearch
-
+RUN cp ${ES_HOME}/config/log4j2.properties ${ES_HOME}/config/jvm.options \
+    ${ES_PATH_CONF} \
+ && chown -R elasticsearch:elasticsearch ${ES_PATH_CONF} \
+ && chmod -R +r ${ES_PATH_CONF}
 
 ### configure Logstash
 
