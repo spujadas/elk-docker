@@ -72,6 +72,7 @@ else
         > /opt/elasticsearch/config/jvm.options.new && mv /opt/elasticsearch/config/jvm.options.new /opt/elasticsearch/config/jvm.options
     awk -v LINE="-Xms$ES_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' /opt/elasticsearch/config/jvm.options \
         > /opt/elasticsearch/config/jvm.options.new && mv /opt/elasticsearch/config/jvm.options.new /opt/elasticsearch/config/jvm.options
+    cp -f /opt/elasticsearch/config/jvm.options /etc/elasticsearch/jvm.options
   fi
 
   # override ES_JAVA_OPTS variable if set
@@ -106,15 +107,16 @@ else
      ES_CONNECT_RETRY=30
   fi
 
-  ELASTICSEARCH_URL=localhost:9200
+  ELASTICSEARCH_URL=${ES_PROTOCOL:-http}://${ELASTICSEARCH_USER}:${ELASTICSEARCH_PASSWORD}@localhost:9200
+  # echo "Pinging with ${ELASTICSEARCH_URL}"
 
   counter=0
-  while [ ! "$(curl ${ELASTICSEARCH_URL} 2> /dev/null)" -a $counter -lt $ES_CONNECT_RETRY  ]; do
+  while [ ! "$(curl -k ${ELASTICSEARCH_URL} 2> /dev/null)" -a $counter -lt $ES_CONNECT_RETRY  ]; do
     sleep 1
     ((counter++))
     echo "waiting for Elasticsearch to be up ($counter/$ES_CONNECT_RETRY)"
   done
-  if [ ! "$(curl ${ELASTICSEARCH_URL} 2> /dev/null)" ]; then
+  if [ ! "$(curl -k ${ELASTICSEARCH_URL} 2> /dev/null)" ]; then
     echo "Couln't start Elasticsearch. Exiting."
     echo "Elasticsearch log follows below."
     cat /var/log/elasticsearch/elasticsearch.log
@@ -126,7 +128,7 @@ else
   while [ -z "$CLUSTER_NAME" -a $counter -lt 30 ]; do
     sleep 1
     ((counter++))
-    CLUSTER_NAME=$(curl ${ELASTICSEARCH_URL}/_cat/health?h=cluster 2> /dev/null | tr -d '[:space:]')
+    CLUSTER_NAME=$(curl -k ${ELASTICSEARCH_URL}/_cat/health?h=cluster 2> /dev/null | tr -d '[:space:]')
     echo "Waiting for Elasticsearch cluster to respond ($counter/30)"
   done
   if [ -z "$CLUSTER_NAME" ]; then
@@ -153,6 +155,7 @@ else
         > /opt/logstash/config/jvm.options.new && mv /opt/logstash/config/jvm.options.new /opt/logstash/config/jvm.options
     awk -v LINE="-Xms$LS_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' /opt/logstash/config/jvm.options \
         > /opt/logstash/config/jvm.options.new && mv /opt/logstash/config/jvm.options.new /opt/logstash/config/jvm.options
+    cp -f /opt/logstash/config/jvm.options /etc/logstash/jvm.options
   fi
 
   # override LS_OPTS variable if set
@@ -178,6 +181,12 @@ else
   if [ ! -z "$NODE_OPTIONS" ]; then
     awk -v LINE="NODE_OPTIONS=\"$NODE_OPTIONS\"" '{ sub(/^NODE_OPTIONS=.*/, LINE); print; }' /etc/init.d/kibana \
         > /etc/init.d/kibana.new && mv /etc/init.d/kibana.new /etc/init.d/kibana && chmod +x /etc/init.d/kibana
+  fi
+
+  # override elasticsearch url
+  if [ "$ES_PROTOCOL"=="https" ]; then
+    awk -v LINE="elasticsearch.url: \"https://localhost:9200\"" '{ sub(/^#?elasticsearch.url.*/, LINE); print; }' ${KIBANA_HOME}/config/kibana.yml \
+        > ${KIBANA_HOME}/config/kibana.yml.new && mv ${KIBANA_HOME}/config/kibana.yml.new ${KIBANA_HOME}/config/kibana.yml
   fi
 
   service kibana start
