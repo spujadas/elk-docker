@@ -232,7 +232,9 @@ The following environment variables can be used to override the defaults used to
 
 - `ES_CONNECT_RETRY`: number of seconds to wait for Elasticsearch to be up before starting Logstash and/or Kibana (default: `30`) 
 
-- `ES_PROTOCOL`: protocol to use to ping Elasticsearch's JSON interface URL (default: `http`) 
+- `ES_PROTOCOL`: protocol to use to ping Elasticsearch's JSON interface URL (default: `http`)
+
+	Note that this variable is only used to test if Elasticsearch is up when starting up the services. It is not used to update Elasticsearch's URL in Logstash's and Kibana's configuration files.  
 
 - `CLUSTER_NAME`: the name of the Elasticsearch cluster (default: automatically resolved when the container starts if Elasticsearch requires no user authentication).
 
