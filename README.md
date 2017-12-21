@@ -14,7 +14,9 @@ This image is hosted on Docker Hub at [https://hub.docker.com/r/sebp/elk/](https
 
 The following tags are available:
 
-- `latest`, `601`: ELK 6.0.1.
+- `latest`, `610`: ELK 6.1.0.
+
+- `601`: ELK 6.0.1.
 
 - `600`: ELK 6.0.0.
 
