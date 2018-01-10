@@ -71,6 +71,7 @@ ENV LOGSTASH_HOME /opt/logstash
 ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
 ENV LOGSTASH_GID 992
 ENV LOGSTASH_UID 992
+ENV LOGSTASH_PATH_CONF /opt/logstash/config
 
 RUN mkdir ${LOGSTASH_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/logstash/${LOGSTASH_PACKAGE} \
