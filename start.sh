@@ -155,6 +155,9 @@ else
         > ${LOGSTASH_PATH_CONF}/jvm.options.new && mv ${LOGSTASH_PATH_CONF}/jvm.options.new ${LOGSTASH_PATH_CONF}/jvm.options
   fi
 
+  awk -v LINE="#-XX:+HeapDumpOnOutOfMemoryError" '{ sub(/^-XX:\+HeapDumpOnOutOfMemoryError.*/, LINE); print; }' ${LOGSTASH_PATH_CONF}/jvm.options \
+        > ${LOGSTASH_PATH_CONF}/jvm.options.new && mv ${LOGSTASH_PATH_CONF}/jvm.options.new ${LOGSTASH_PATH_CONF}/jvm.options
+
   # override LS_OPTS variable if set
   if [ ! -z "$LS_OPTS" ]; then
     awk -v LINE="LS_OPTS=\"$LS_OPTS\"" '{ sub(/^LS_OPTS=.*/, LINE); print; }' /etc/init.d/logstash \
