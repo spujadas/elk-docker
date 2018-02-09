@@ -16,7 +16,7 @@ ENV REFRESHED_AT 2017-01-13
 #                                INSTALLATION
 ###############################################################################
 
-### install prerequisites (cURL, gosu, JDK)
+### install prerequisites (cURL, gosu, JDK, tzdata)
 
 ENV GOSU_VERSION 1.8
 
@@ -34,7 +34,7 @@ RUN set -x \
  && chmod +x /usr/local/bin/gosu \
  && gosu nobody true \
  && apt-get update -qq \
- && apt-get install -qqy openjdk-8-jdk \
+ && apt-get install -qqy openjdk-8-jdk tzdata \
  && apt-get clean \
  && set +x
 
