@@ -71,6 +71,8 @@ ENV LOGSTASH_HOME /opt/logstash
 ENV LOGSTASH_PACKAGE logstash-${LOGSTASH_VERSION}.tar.gz
 ENV LOGSTASH_GID 992
 ENV LOGSTASH_UID 992
+ENV LOGSTASH_PATH_CONF /etc/logstash
+ENV LOGSTASH_PATH_SETTINGS ${LOGSTASH_HOME}/config
 
 RUN mkdir ${LOGSTASH_HOME} \
  && curl -O https://artifacts.elastic.co/downloads/logstash/${LOGSTASH_PACKAGE} \
@@ -78,8 +80,8 @@ RUN mkdir ${LOGSTASH_HOME} \
  && rm -f ${LOGSTASH_PACKAGE} \
  && groupadd -r logstash -g ${LOGSTASH_GID} \
  && useradd -r -s /usr/sbin/nologin -d ${LOGSTASH_HOME} -c "Logstash service user" -u ${LOGSTASH_UID} -g logstash logstash \
- && mkdir -p /var/log/logstash /etc/logstash/conf.d \
- && chown -R logstash:logstash ${LOGSTASH_HOME} /var/log/logstash /etc/logstash
+ && mkdir -p /var/log/logstash ${LOGSTASH_PATH_CONF}/conf.d \
+ && chown -R logstash:logstash ${LOGSTASH_HOME} /var/log/logstash ${LOGSTASH_PATH_CONF}
 
 ADD ./logstash-init /etc/init.d/logstash
 RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
@@ -129,17 +131,17 @@ ADD ./logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
 
 # filters
-ADD ./02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
-ADD ./10-syslog.conf /etc/logstash/conf.d/10-syslog.conf
-ADD ./11-nginx.conf /etc/logstash/conf.d/11-nginx.conf
-ADD ./30-output.conf /etc/logstash/conf.d/30-output.conf
+ADD ./02-beats-input.conf ${LOGSTASH_PATH_CONF}/conf.d/02-beats-input.conf
+ADD ./10-syslog.conf ${LOGSTASH_PATH_CONF}/conf.d/10-syslog.conf
+ADD ./11-nginx.conf ${LOGSTASH_PATH_CONF}/conf.d/11-nginx.conf
+ADD ./30-output.conf ${LOGSTASH_PATH_CONF}/conf.d/30-output.conf
 
 # patterns
 ADD ./nginx.pattern ${LOGSTASH_HOME}/patterns/nginx
 RUN chown -R logstash:logstash ${LOGSTASH_HOME}/patterns
 
 # Fix permissions
-RUN chmod -R +r /etc/logstash
+RUN chmod -R +r ${LOGSTASH_PATH_CONF}
 
 ### configure logrotate
 
