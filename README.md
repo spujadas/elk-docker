@@ -1,6 +1,6 @@
 # Elasticsearch, Logstash, Kibana (ELK) Docker image
 
-[![](https://badge.imagelayers.io/sebp/elk:latest.svg)](https://imagelayers.io/?images=sebp/elk:latest 'Get your own badge on imagelayers.io') [![Documentation Status](https://readthedocs.org/projects/elk-docker/badge/?version=latest)](http://elk-docker.readthedocs.io/?badge=latest)
+[![](https://images.microbadger.com/badges/image/sebp/elk.svg)](https://microbadger.com/images/sebp/elk "Get your own image badge on microbadger.com") [![Documentation Status](https://readthedocs.org/projects/elk-docker/badge/?version=latest)](http://elk-docker.readthedocs.io/?badge=latest)
 
 This Docker image provides a convenient centralised log server and log management web interface, by packaging Elasticsearch, Logstash, and Kibana, collectively known as ELK.
 
@@ -14,7 +14,27 @@ This image is hosted on Docker Hub at [https://hub.docker.com/r/sebp/elk/](https
 
 The following tags are available:
 
-- `latest`, `564`: ELK 5.6.4.
+- `latest`, `622`: ELK 6.2.2.
+
+- `621`: ELK 6.2.1.
+
+- `620`: ELK 6.2.0.
+
+- `613`: ELK 6.1.3.
+
+- `612`: ELK 6.1.2.
+
+- `611`: ELK 6.1.1.
+
+- `610`: ELK 6.1.0.
+
+- `601`: ELK 6.0.1.
+
+- `600`: ELK 6.0.0.
+
+- `568`: ELK 5.6.8.
+
+- `564`: ELK 5.6.4.
 
 - `563`: ELK 5.6.3.
 
