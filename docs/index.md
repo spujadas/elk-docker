@@ -36,6 +36,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
 	- [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
 	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
+- [Known issues](#known-issues)
 - [Troubleshooting](#troubleshooting)
 	- [If Elasticsearch isn't starting...](#es-not-starting)
 	- [If your log-emitting client doesn't seem to be able to reach Logstash...](#logstash-unreachable)
@@ -231,6 +232,10 @@ The following environment variables can be used to override the defaults used to
 
 - `ES_CONNECT_RETRY`: number of seconds to wait for Elasticsearch to be up before starting Logstash and/or Kibana (default: `30`) 
 
+- `ES_PROTOCOL`: protocol to use to ping Elasticsearch's JSON interface URL (default: `http`)
+
+	Note that this variable is only used to test if Elasticsearch is up when starting up the services. It is not used to update Elasticsearch's URL in Logstash's and Kibana's configuration files.  
+
 - `CLUSTER_NAME`: the name of the Elasticsearch cluster (default: automatically resolved when the container starts if Elasticsearch requires no user authentication).
 
 	The name of the Elasticsearch cluster is used to set the name of the Elasticsearch log file that the container displays when running. By default the name of the cluster is resolved automatically at start-up time (and populates `CLUSTER_NAME`) by querying Elasticsearch's REST API anonymously. However, when Elasticsearch requires user authentication (as is the case by default when running X-Pack for instance), this query fails and the container stops as it assumes that Elasticsearch is not running properly. Therefore, the `CLUSTER_NAME` environment variable can be used to specify the name of the cluster and bypass the (failing) automatic resolution.
@@ -318,9 +323,7 @@ You'll also need to copy the `logstash-beats.crt` file (which contains the certi
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
 
-Before starting Filebeat for the first time, run this command (replace `elk` with the appropriate hostname) to load the default index template in Elasticsearch:
-
-		curl -XPUT 'http://elk:9200/_template/filebeat?pretty' -d@/etc/filebeat/filebeat.template.json
+If you're starting Filebeat for the first time, you should load the default index template in Elasticsearch. *At the time of writing, in version 6, loading the index template in Elasticsearch doesn't work, see [Known issues](#known-issues).*
 
 Start Filebeat:
 
@@ -693,6 +696,38 @@ With the default image, this is usually due to Elasticsearch running out of memo
 
 As a reminder (see [Prerequisites](#prerequisites)), you should use no less than 3GB of memory to run the container... and possibly much more.
 
+## Known issues <a name="known-issues"></a>
+
+When using Filebeat, an [index template file](https://www.elastic.co/guide/en/beats/filebeat/6.0/filebeat-template.html) is used to connect to Elasticsearch to define settings and mappings that determine how fields should be analysed.
+
+In version 5, before starting Filebeat for the first time, you would run this command (replacing `elk` with the appropriate hostname) to load the default index template in Elasticsearch:
+
+		curl -XPUT 'http://elk:9200/_template/filebeat?pretty' -d@/etc/filebeat/filebeat.template.json
+
+In version 6 however, the `filebeat.template.json` template file has been replaced with a `fields.yml` file, which is used to load the index manually by running `filebeat setup --template` [as per the official Filebeat instructions](https://www.elastic.co/guide/en/beats/filebeat/6.0/filebeat-template.html#load-template-manually). Unfortunately, this doesn't currently work and results in the following message:
+
+    Exiting: Template loading requested but the Elasticsearch output is not configured/enabled
+
+Attempting to start Filebeat without setting up the template produces the following message:
+
+    Warning: Couldn't read data from file "/etc/filebeat/filebeat.template.json",
+    Warning: this makes an empty POST.
+    {
+      "error" : {
+        "root_cause" : [
+          {
+            "type" : "parse_exception",
+            "reason" : "request body is required"
+          }
+        ],
+        "type" : "parse_exception",
+        "reason" : "request body is required"
+      },
+      "status" : 400
+    }
+
+One can assume that in later releases of Filebeat the instructions will be clarified to specify how to manually load the index template into an specific instance of Elastisearch, and that the warning message will vanish as no longer applicable in version 6.   
+
 ## Troubleshooting <a name="troubleshooting"></a>
 
 **Important** – If you need help to troubleshoot the configuration of Elasticsearch, Logstash, or Kibana, regardless of where the services are running (in a Docker container or not), please head over to the [Elastic forums](https://discuss.elastic.co/). The troubleshooting guidelines below only apply to running a container using the ELK Docker image.
@@ -758,6 +793,13 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 
 Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
 
+- **Version 6**
+
+	*Applies to tags: `600` and later.*
+
+	Breaking changes are introduced in version 6 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/6.x/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/6.x/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/6.x/breaking-changes.html).
+
+
 - **`ES_HEAP_SIZE` and `LS_HEAP_SIZE`**
 
 	*Applies to tags: `502` to `522`.*
@@ -776,7 +818,7 @@ Here is the list of breaking changes that may have side effects when upgrading t
 
 	*Applies to tags: `es500_l500_k500` and later.*
 
-	Breaking changes are introduced in version 5 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/master/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/master/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/master/releasenotes.html).
+	Breaking changes are introduced in version 5 of [Elasticsearch](https://www.elastic.co/guide/en/elasticsearch/reference/5.0/breaking-changes.html), [Logstash](https://www.elastic.co/guide/en/logstash/5.0/breaking-changes.html), and [Kibana](https://www.elastic.co/guide/en/kibana/5.0/breaking-changes.html).
 
 - **Private keys in PKCS#8 format**
 
