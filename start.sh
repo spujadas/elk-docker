@@ -100,7 +100,9 @@ else
      ES_CONNECT_RETRY=30
   fi
 
-  ELASTICSEARCH_URL=${ES_PROTOCOL:-http}://localhost:9200
+  if [ -z "$ELASTICSEARCH_URL" ]; then
+    ELASTICSEARCH_URL=${ES_PROTOCOL:-http}://localhost:9200
+  fi
 
   counter=0
   while [ ! "$(curl -k ${ELASTICSEARCH_URL} 2> /dev/null)" -a $counter -lt $ES_CONNECT_RETRY  ]; do
@@ -198,7 +200,9 @@ if [ -x /usr/local/bin/elk-post-hooks.sh ]; then
        KIBANA_CONNECT_RETRY=30
     fi
 
-    KIBANA_URL=localhost:5601
+    if [ -z "$KIBANA_URL" ]; then
+      KIBANA_URL=http://localhost:5601
+    fi
 
     counter=0
     while [ ! "$(curl ${KIBANA_URL} 2> /dev/null)" -a $counter -lt $KIBANA_CONNECT_RETRY  ]; do
