@@ -36,6 +36,10 @@
 #
 #path.logs: /path/to/logs
 #
+# Path to snapshots for backups:
+#
+path.repo: /var/backups
+#
 # ----------------------------------- Memory -----------------------------------
 #
 # Lock the memory on startup:

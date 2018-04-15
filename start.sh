@@ -21,7 +21,7 @@ _term() {
   exit 0
 }
 
-trap _term SIGTERM
+trap _term SIGTERM SIGINT
 
 
 ## remove pidfiles in case previous graceful termination failed
