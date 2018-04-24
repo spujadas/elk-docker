@@ -733,7 +733,7 @@ Attempting to start Filebeat without setting up the template produces the follow
       "status" : 400
     }
 
-One can assume that in later releases of Filebeat the instructions will be clarified to specify how to manually load the index template into an specific instance of Elastisearch, and that the warning message will vanish as no longer applicable in version 6.   
+One can assume that in later releases of Filebeat the instructions will be clarified to specify how to manually load the index template into an specific instance of Elasticsearch, and that the warning message will vanish as no longer applicable in version 6.   
 
 ## Troubleshooting <a name="troubleshooting"></a>
 
