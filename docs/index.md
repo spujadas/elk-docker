@@ -802,7 +802,7 @@ Here is the list of breaking changes that may have side effects when upgrading t
 
 - **`path.repo`**
 
-	*Applies to tags: after `623`.*
+	*Applies to tags: after `623` & `569`.*
 
 	Elasticsearch's `path.repo` parameter is predefined as `/var/backups` in `elasticsearch.yml` (see [Snapshot and restore](#snapshot-restore)). 
 

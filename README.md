@@ -34,6 +34,8 @@ The following tags are available:
 
 - `600`: ELK 6.0.0.
 
+- `569`: ELK 5.6.9.
+
 - `568`: ELK 5.6.8.
 
 - `564`: ELK 5.6.4.
