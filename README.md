@@ -14,7 +14,9 @@ This image is hosted on Docker Hub at [https://hub.docker.com/r/sebp/elk/](https
 
 The following tags are available:
 
-- `latest`, `623`: ELK 6.2.3.
+- `latest`, `624`: ELK 6.2.4.
+
+- `623`: ELK 6.2.3.
 
 - `622`: ELK 6.2.2.
 
@@ -99,7 +101,7 @@ The following tags are available:
 - `es232_l232_k450`: Elasticsearch 2.3.2, Logstash 2.3.2, and Kibana 4.5.0.
 
 - `es231_l231_k450`: Elasticsearch 2.3.1, Logstash 2.3.1, and Kibana 4.5.0.
- 
+
 - `es230_l230_k450`: Elasticsearch 2.3.0, Logstash 2.3.0, and Kibana 4.5.0.
 
 - `es221_l222_k442`: Elasticsearch 2.2.1, Logstash 2.2.2, and Kibana 4.4.2.
@@ -115,4 +117,3 @@ The following tags are available:
 ### About
 
 Written by [Sébastien Pujadas](https://pujadas.net), released under the [Apache 2 license](https://www.apache.org/licenses/LICENSE-2.0).
-
