@@ -36,6 +36,12 @@ rm -f /var/run/elasticsearch/elasticsearch.pid /var/run/logstash.pid \
 OUTPUT_LOGFILES=""
 
 
+## override default time zone (Etc/UTC) if TZ variable is set
+if [ ! -z "$TZ" ]; then
+  ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+fi
+
+
 ## run pre-hooks
 if [ -x /usr/local/bin/elk-pre-hooks.sh ]; then
   . /usr/local/bin/elk-pre-hooks.sh
