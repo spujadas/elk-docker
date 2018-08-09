@@ -55,6 +55,9 @@ To run a container using this image, you will need the following:
 
 	Install [Docker](https://docker.com/), either using a native package (Linux) or wrapped in a virtual machine (Windows, OS X – e.g. using [Boot2Docker](http://boot2docker.io/) or [Vagrant](https://www.vagrantup.com/)).
 
+	**Note** – As the *sebp/elk* image is based on a Linux image, users of Docker for Windows will need to ensure that [Docker is using Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
+	 
+
 - **A minimum of 4GB RAM assigned to Docker**
 
 	Elasticsearch alone needs at least 2GB of RAM to run.
