@@ -700,6 +700,8 @@ If Elasticsearch's logs are *not* dumped (i.e. you get the following message: `c
 
 In particular, in case (1) above, the message `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]` means that the host's limits on mmap counts **must** be set to at least 262144.
 
+If during the startup you can access elasticsearch but it the container stops after waiting for Elasticsearch to be up, check if you have a proxy defined for docker and if you do have localhost is excluded from the proxy by using a no_proxy setting
+
 ### Elasticsearch is suddenly stopping after having started properly <a name="es-suddenly-stopping"></a>
 
 With the default image, this is usually due to Elasticsearch running out of memory after the other services are started, and the corresponding process being (silently) killed.
