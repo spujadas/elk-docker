@@ -37,6 +37,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
 	- [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
 	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
+	- [Miscellaneous](#issues-misc)
 - [Known issues](#known-issues)
 - [Troubleshooting](#troubleshooting)
 	- [If Elasticsearch isn't starting...](#es-not-starting)
@@ -700,13 +701,20 @@ If Elasticsearch's logs are *not* dumped (i.e. you get the following message: `c
 
 In particular, in case (1) above, the message `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]` means that the host's limits on mmap counts **must** be set to at least 262144.
 
-If during the startup you can access elasticsearch but it the container stops after waiting for Elasticsearch to be up, check if you have a proxy defined for docker and if you do have localhost is excluded from the proxy by using a no_proxy setting
-
 ### Elasticsearch is suddenly stopping after having started properly <a name="es-suddenly-stopping"></a>
 
 With the default image, this is usually due to Elasticsearch running out of memory after the other services are started, and the corresponding process being (silently) killed.
 
 As a reminder (see [Prerequisites](#prerequisites)), you should use no less than 3GB of memory to run the container... and possibly much more.
+
+### Miscellaneous <a name="issues-misc"></a>
+
+Other known issues include:
+
+- Elasticsearch not having enough time to start up with the default image settings: in that case [set the `ES_CONNECT_RETRY` environment variable](#overriding-variables) to a value larger than 30. (By default Elasticsearch has 30 seconds to start before other services are started, which may not be enough and cause the container to stop.)
+
+- Incorrect proxy settings, e.g. if a proxy is defined for Docker, ensure that connections to `localhost` are not proxied (e.g. by using a `no_proxy` setting).
+
 
 ## Known issues <a name="known-issues"></a>
 
