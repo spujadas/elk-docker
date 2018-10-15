@@ -472,14 +472,7 @@ The name of Kibana's home directory in the image is stored in the `KIBANA_HOME` 
 
 Kibana runs as the user `kibana`. To avoid issues with permissions, it is therefore recommended to install Kibana plugins as `kibana`, using the `gosu` command (see below for an example, and references for further details).  
 
-The following `Dockerfile` can be used to extend the base image and install the latest version of the [Sense plugin](https://www.elastic.co/guide/en/sense/current/index.html), a handy console for interacting with the REST API of Elasticsearch:
-
-	FROM sebp/elk
-
-	WORKDIR ${KIBANA_HOME}
-	RUN gosu kibana bin/kibana-plugin install elastic/sense
-
-See the *[Building the image](#building-image)* section above for instructions on building the new image. You can then run a container based on this image using the same command line as the one in the *[Usage](#usage)* section. The Sense interface will be accessible at `http://<your-host>:5601/apss/sense` (e.g. [http://localhost:5601/app/sense](http://localhost:5601/app/sense) for a local native instance of Docker).
+A `Dockerfile` similar to the ones in the sections on Elasticsearch and Logstash plugins can be used to extend the base image and install a Kibana plugin.
 
 ## Persisting log data <a name="persisting-log-data"></a>
 
