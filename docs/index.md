@@ -413,9 +413,15 @@ The next few subsections present some typical use cases.
 
 ### Updating Logstash's configuration <a name="updating-logstash-configuration"></a>
 
-The image contains several configuration files for Logstash (e.g. `01-lumberjack-input.conf`, `02-beats-input.conf`), all located in `/etc/logstash/conf.d`.
+Generally speaking, the directory layout for Logstash is the one described [here](https://www.elastic.co/guide/en/logstash/current/dir-layout.html#zip-targz-layout). 
 
-To modify an existing configuration file, you can bind-mount a local configuration file to a configuration file within the container at runtime. For instance, if you want to replace the image's `30-output.conf` Logstash configuration file with your local file `/path/to/your-30-output.conf`, then you would add the following `-v` option to your `docker` command line:
+Logstash's settings are defined by the configuration files (e.g. `logstash.yml`, `jvm.options`, `pipelines.yml`) located in `/opt/logstash/config`.
+
+Out of the box the image's `pipelines.yml` configuration file defines a default pipeline, made of the files (e.g. `01-lumberjack-input.conf`, `02-beats-input.conf`) located in `/etc/logstash/conf.d`.
+
+**Note** – Somewhat confusingly, the term "configuration file" may be used to refer to the files defining  Logstash's settings or those defining its pipelines (which are probably the ones you want to tweak the most).
+
+To modify an existing configuration file (be it a high-level Logstash configuration file, or a pipeline configuration file), you can bind-mount a local configuration file to a configuration file within the container at runtime. For instance, if you want to replace the image's `30-output.conf` configuration file with your local file `/path/to/your-30-output.conf`, then you would add the following `-v` option to your `docker` command line:
 
 	$ sudo docker run ... \
 		-v /path/to/your-30-output.conf:/etc/logstash/conf.d/30-output.conf \
