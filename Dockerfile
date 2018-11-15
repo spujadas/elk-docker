@@ -131,9 +131,6 @@ RUN mkdir -p /etc/pki/tls/certs && mkdir /etc/pki/tls/private
 ADD ./logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
 
-# pipelines
-ADD pipelines.yml ${LOGSTASH_PATH_SETTINGS}/pipelines.yml
-
 # filters
 ADD ./02-beats-input.conf ${LOGSTASH_PATH_CONF}/conf.d/02-beats-input.conf
 ADD ./10-syslog.conf ${LOGSTASH_PATH_CONF}/conf.d/10-syslog.conf
@@ -145,8 +142,7 @@ ADD ./nginx.pattern ${LOGSTASH_HOME}/patterns/nginx
 RUN chown -R logstash:logstash ${LOGSTASH_HOME}/patterns
 
 # Fix permissions
-RUN chmod -R +r ${LOGSTASH_PATH_CONF} ${LOGSTASH_PATH_SETTINGS} \
- && chown -R logstash:logstash ${LOGSTASH_PATH_SETTINGS}
+RUN chmod -R +r ${LOGSTASH_PATH_CONF}
 
 ### configure logrotate
 
