@@ -21,7 +21,7 @@ _term() {
   exit 0
 }
 
-trap _term SIGTERM
+trap _term SIGTERM SIGINT
 
 
 ## remove pidfiles in case previous graceful termination failed
@@ -74,6 +74,11 @@ else
         > ${ES_PATH_CONF}/jvm.options.new && mv ${ES_PATH_CONF}/jvm.options.new ${ES_PATH_CONF}/jvm.options
   fi
 
+  if [ ! -z "$ES_HEAP_DISABLE" ]; then
+    awk -v LINE="#-XX:+HeapDumpOnOutOfMemoryError" '{ sub(/^-XX:\+HeapDumpOnOutOfMemoryError.*/, LINE); print; }' ${ES_PATH_CONF}/jvm.options \
+        > ${ES_PATH_CONF}/jvm.options.new && mv ${ES_PATH_CONF}/jvm.options.new ${ES_PATH_CONF}/jvm.options
+  fi
+
   # override ES_JAVA_OPTS variable if set
   if [ ! -z "$ES_JAVA_OPTS" ]; then
     awk -v LINE="ES_JAVA_OPTS=\"$ES_JAVA_OPTS\"" '{ sub(/^#?ES_JAVA_OPTS=.*/, LINE); print; }' /etc/default/elasticsearch \
@@ -106,7 +111,9 @@ else
      ES_CONNECT_RETRY=30
   fi
 
-  ELASTICSEARCH_URL=${ES_PROTOCOL:-http}://localhost:9200
+  if [ -z "$ELASTICSEARCH_URL" ]; then
+    ELASTICSEARCH_URL=${ES_PROTOCOL:-http}://localhost:9200
+  fi
 
   counter=0
   while [ ! "$(curl -k ${ELASTICSEARCH_URL} 2> /dev/null)" -a $counter -lt $ES_CONNECT_RETRY  ]; do
@@ -149,14 +156,16 @@ if [ "$LOGSTASH_START" -ne "1" ]; then
 else
   # override LS_HEAP_SIZE variable if set
   if [ ! -z "$LS_HEAP_SIZE" ]; then
-    awk -v LINE="-Xmx$LS_HEAP_SIZE" '{ sub(/^.Xmx.*/, LINE); print; }' ${LOGSTASH_PATH_CONF}/jvm.options \
-        > ${LOGSTASH_PATH_CONF}/jvm.options.new && mv ${LOGSTASH_PATH_CONF}/jvm.options.new ${LOGSTASH_PATH_CONF}/jvm.options
-    awk -v LINE="-Xms$LS_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' ${LOGSTASH_PATH_CONF}/jvm.options \
-        > ${LOGSTASH_PATH_CONF}/jvm.options.new && mv ${LOGSTASH_PATH_CONF}/jvm.options.new ${LOGSTASH_PATH_CONF}/jvm.options
+    awk -v LINE="-Xmx$LS_HEAP_SIZE" '{ sub(/^.Xmx.*/, LINE); print; }' ${LOGSTASH_PATH_SETTINGS}/jvm.options \
+        > ${LOGSTASH_PATH_SETTINGS}/jvm.options.new && mv ${LOGSTASH_PATH_SETTINGS}/jvm.options.new ${LOGSTASH_PATH_SETTINGS}/jvm.options
+    awk -v LINE="-Xms$LS_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' ${LOGSTASH_PATH_SETTINGS}/jvm.options \
+        > ${LOGSTASH_PATH_SETTINGS}/jvm.options.new && mv ${LOGSTASH_PATH_SETTINGS}/jvm.options.new ${LOGSTASH_PATH_SETTINGS}/jvm.options
   fi
 
-  awk -v LINE="#-XX:+HeapDumpOnOutOfMemoryError" '{ sub(/^-XX:\+HeapDumpOnOutOfMemoryError.*/, LINE); print; }' ${LOGSTASH_PATH_CONF}/jvm.options \
-        > ${LOGSTASH_PATH_CONF}/jvm.options.new && mv ${LOGSTASH_PATH_CONF}/jvm.options.new ${LOGSTASH_PATH_CONF}/jvm.options
+  if [ ! -z "$LS_HEAP_DISABLE" ]; then
+    awk -v LINE="#-XX:+HeapDumpOnOutOfMemoryError" '{ sub(/^-XX:\+HeapDumpOnOutOfMemoryError.*/, LINE); print; }' ${LOGSTASH_PATH_SETTINGS}/jvm.options \
+        > ${LOGSTASH_PATH_SETTINGS}/jvm.options.new && mv ${LOGSTASH_PATH_SETTINGS}/jvm.options.new ${LOGSTASH_PATH_SETTINGS}/jvm.options
+  fi
 
   # override LS_OPTS variable if set
   if [ ! -z "$LS_OPTS" ]; then
@@ -207,7 +216,9 @@ if [ -x /usr/local/bin/elk-post-hooks.sh ]; then
        KIBANA_CONNECT_RETRY=30
     fi
 
-    KIBANA_URL=localhost:5601
+    if [ -z "$KIBANA_URL" ]; then
+      KIBANA_URL=http://localhost:5601
+    fi
 
     counter=0
     while [ ! "$(curl ${KIBANA_URL} 2> /dev/null)" -a $counter -lt $KIBANA_CONNECT_RETRY  ]; do

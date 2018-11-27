@@ -24,6 +24,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Installing Logstash plugins](#installing-logstash-plugins)
 	- [Installing Kibana plugins](#installing-kibana-plugins)
 - [Persisting log data](#persisting-log-data)
+- [Snapshot and restore](#snapshot-restore)
 - [Setting up an Elasticsearch cluster](#elasticsearch-cluster)
 	- [Running Elasticsearch nodes on different hosts](#elasticsearch-cluster-different-hosts)
 	- [Running Elasticsearch nodes on a single host](#elasticsearch-cluster-single-host)
@@ -36,6 +37,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
 	- [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
 	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
+	- [Miscellaneous](#issues-misc)
 - [Known issues](#known-issues)
 - [Troubleshooting](#troubleshooting)
 	- [If Elasticsearch isn't starting...](#es-not-starting)
@@ -53,6 +55,9 @@ To run a container using this image, you will need the following:
 - **Docker**
 
 	Install [Docker](https://docker.com/), either using a native package (Linux) or wrapped in a virtual machine (Windows, OS X – e.g. using [Boot2Docker](http://boot2docker.io/) or [Vagrant](https://www.vagrantup.com/)).
+
+	**Note** – As the *sebp/elk* image is based on a Linux image, users of Docker for Windows will need to ensure that [Docker is using Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
+	 
 
 - **A minimum of 4GB RAM assigned to Docker**
 
@@ -408,9 +413,15 @@ The next few subsections present some typical use cases.
 
 ### Updating Logstash's configuration <a name="updating-logstash-configuration"></a>
 
-The image contains several configuration files for Logstash (e.g. `01-lumberjack-input.conf`, `02-beats-input.conf`), all located in `/etc/logstash/conf.d`.
+Generally speaking, the directory layout for Logstash is the one described [here](https://www.elastic.co/guide/en/logstash/current/dir-layout.html#zip-targz-layout). 
 
-To modify an existing configuration file, you can bind-mount a local configuration file to a configuration file within the container at runtime. For instance, if you want to replace the image's `30-output.conf` Logstash configuration file with your local file `/path/to/your-30-output.conf`, then you would add the following `-v` option to your `docker` command line:
+Logstash's settings are defined by the configuration files (e.g. `logstash.yml`, `jvm.options`, `pipelines.yml`) located in `/opt/logstash/config`.
+
+Out of the box the image's `pipelines.yml` configuration file defines a default pipeline, made of the files (e.g. `01-lumberjack-input.conf`, `02-beats-input.conf`) located in `/etc/logstash/conf.d`.
+
+**Note** – Somewhat confusingly, the term "configuration file" may be used to refer to the files defining  Logstash's settings or those defining its pipelines (which are probably the ones you want to tweak the most).
+
+To modify an existing configuration file (be it a high-level Logstash configuration file, or a pipeline configuration file), you can bind-mount a local configuration file to a configuration file within the container at runtime. For instance, if you want to replace the image's `30-output.conf` configuration file with your local file `/path/to/your-30-output.conf`, then you would add the following `-v` option to your `docker` command line:
 
 	$ sudo docker run ... \
 		-v /path/to/your-30-output.conf:/etc/logstash/conf.d/30-output.conf \
@@ -441,8 +452,8 @@ A `Dockerfile` like the following will extend the base image and install the [Ge
 	ENV ES_HOME /opt/elasticsearch
 	WORKDIR ${ES_HOME}
 
-	RUN CONF_DIR=/etc/elasticsearch gosu elasticsearch bin/elasticsearch-plugin \
-		install ingest-geoip
+	RUN yes | CONF_DIR=/etc/elasticsearch gosu elasticsearch bin/elasticsearch-plugin \
+		install -b ingest-geoip
 
 You can now build the new image (see the *[Building the image](#building-image)* section above) and run the container in the same way as you did with the base image.
 
@@ -467,14 +478,7 @@ The name of Kibana's home directory in the image is stored in the `KIBANA_HOME` 
 
 Kibana runs as the user `kibana`. To avoid issues with permissions, it is therefore recommended to install Kibana plugins as `kibana`, using the `gosu` command (see below for an example, and references for further details).  
 
-The following `Dockerfile` can be used to extend the base image and install the latest version of the [Sense plugin](https://www.elastic.co/guide/en/sense/current/index.html), a handy console for interacting with the REST API of Elasticsearch:
-
-	FROM sebp/elk
-
-	WORKDIR ${KIBANA_HOME}
-	RUN gosu kibana bin/kibana-plugin install elastic/sense
-
-See the *[Building the image](#building-image)* section above for instructions on building the new image. You can then run a container based on this image using the same command line as the one in the *[Usage](#usage)* section. The Sense interface will be accessible at `http://<your-host>:5601/apss/sense` (e.g. [http://localhost:5601/app/sense](http://localhost:5601/app/sense) for a local native instance of Docker).
+A `Dockerfile` similar to the ones in the sections on Elasticsearch and Logstash plugins can be used to extend the base image and install a Kibana plugin.
 
 ## Persisting log data <a name="persisting-log-data"></a>
 
@@ -496,6 +500,12 @@ See Docker's page on [Managing Data in Containers](https://docs.docker.com/engin
 In terms of permissions, Elasticsearch data is created by the image's `elasticsearch` user, with UID 991 and GID 991.
 
 There is a [known situation](https://github.com/spujadas/elk-docker/issues/69) where SELinux denies access to the mounted volume when running in _enforcing_ mode. The workaround is to use the `setenforce 0` command to run SELinux in _permissive_ mode.
+
+## Snapshot and restore <a name="snapshot-restore"></a>
+
+The `/var/backups` directory is registered as the snapshot repository (using the `path.repo` parameter in the `elasticsearch.yml` configuration file). A volume or bind-mount could be used to access this directory and the snapshots from outside the container.
+
+For further information on snapshot and restore operations, see the official documentation on [Snapshot and Restore](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html). 
 
 ## Setting up an Elasticsearch cluster <a name="elasticsearch-cluster"></a>
 
@@ -696,6 +706,15 @@ With the default image, this is usually due to Elasticsearch running out of memo
 
 As a reminder (see [Prerequisites](#prerequisites)), you should use no less than 3GB of memory to run the container... and possibly much more.
 
+### Miscellaneous <a name="issues-misc"></a>
+
+Other known issues include:
+
+- Elasticsearch not having enough time to start up with the default image settings: in that case [set the `ES_CONNECT_RETRY` environment variable](#overriding-variables) to a value larger than 30. (By default Elasticsearch has 30 seconds to start before other services are started, which may not be enough and cause the container to stop.)
+
+- Incorrect proxy settings, e.g. if a proxy is defined for Docker, ensure that connections to `localhost` are not proxied (e.g. by using a `no_proxy` setting).
+
+
 ## Known issues <a name="known-issues"></a>
 
 When using Filebeat, an [index template file](https://www.elastic.co/guide/en/beats/filebeat/6.0/filebeat-template.html) is used to connect to Elasticsearch to define settings and mappings that determine how fields should be analysed.
@@ -726,7 +745,7 @@ Attempting to start Filebeat without setting up the template produces the follow
       "status" : 400
     }
 
-One can assume that in later releases of Filebeat the instructions will be clarified to specify how to manually load the index template into an specific instance of Elastisearch, and that the warning message will vanish as no longer applicable in version 6.   
+One can assume that in later releases of Filebeat the instructions will be clarified to specify how to manually load the index template into an specific instance of Elasticsearch, and that the warning message will vanish as no longer applicable in version 6.   
 
 ## Troubleshooting <a name="troubleshooting"></a>
 
@@ -792,6 +811,12 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 ## Breaking changes <a name="breaking changes"></a>
 
 Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
+
+- **`path.repo`**
+
+	*Applies to tags: after `623`.*
+
+	Elasticsearch's `path.repo` parameter is predefined as `/var/backups` in `elasticsearch.yml` (see [Snapshot and restore](#snapshot-restore)). 
 
 - **Version 6**
 
