@@ -259,6 +259,10 @@ The following environment variables can be used to override the defaults used to
 
 - `KIBANA_CONNECT_RETRY`: number of seconds to wait for Kibana to be up before running the post-hook script (see [Pre-hooks and post-hooks](#pre-post-hooks)) (default: `30`) 
 
+- `ES_HEAP_DISABLE` and `LS_HEAP_DISABLE`: disable `HeapDumpOnOutOfMemoryError` for Elasticsearch and Logstash respectively if non-zero (default: `HeapDumpOnOutOfMemoryError` is enabled).
+
+	Setting these environment variables avoids potentially large heap dumps if the services run out of memory.
+
 
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size and Logstash with a 1GB heap size:
 
