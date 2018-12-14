@@ -131,6 +131,14 @@ The following tags are available:
 - `E1L1K4`: Elasticsearch 1.7.3, Logstash 1.5.5, and Kibana 4.1.2.
 
 **Note** – See the documentation page for more information on pulling specific combinations of versions of Elasticsearch, Logstash and Kibana.
+**Trouble shooting **
+
+'max file descriptors [4096] for elasticsearch process is too low,' issue 
+change the default-ulimit nofile to 1024:65536
+Go to 
+'vim /etc/sysconfig/docker'
+
+'OPTIONS="--default-ulimit nofile=1024:65536"'
 
 ### About
 
