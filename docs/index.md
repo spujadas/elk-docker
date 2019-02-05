@@ -631,7 +631,9 @@ To harden this image, at the very least you would want to:
 - Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html)).
 - Generate a new self-signed authentication certificate for the Logstash input plugins (see [Notes on certificates](#certificates)) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
 
-The [sebp/elkx](https://hub.docker.com/r/sebp/elkx/) image, which extends the ELK image with X-Pack, may be a useful starting point to improve the security of the ELK services.
+X-Pack, which is now bundled with the other ELK services, may be a useful to implement enterprise-grade security to the ELK stack.
+
+Alternatively, to implement authentication in a simple way, a reverse proxy (e.g. as provided by [nginx](https://www.nginx.com/) or [Caddy](https://caddyserver.com/)) could be used in front of the ELK services. 
 
 If on the other hand you want to disable certificate-based server authentication (e.g. in a demo environment), see [Disabling SSL/TLS](#disabling-ssl-tls).
 
