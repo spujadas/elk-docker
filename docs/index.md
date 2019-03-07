@@ -259,6 +259,10 @@ The following environment variables can be used to override the defaults used to
 
 - `KIBANA_CONNECT_RETRY`: number of seconds to wait for Kibana to be up before running the post-hook script (see [Pre-hooks and post-hooks](#pre-post-hooks)) (default: `30`) 
 
+- `ES_HEAP_DISABLE` and `LS_HEAP_DISABLE`: disable `HeapDumpOnOutOfMemoryError` for Elasticsearch and Logstash respectively if non-zero (default: `HeapDumpOnOutOfMemoryError` is enabled).
+
+	Setting these environment variables avoids potentially large heap dumps if the services run out of memory.
+
 
 As an illustration, the following command starts the stack, running Elasticsarch with a 2GB heap size and Logstash with a 1GB heap size:
 
@@ -627,7 +631,9 @@ To harden this image, at the very least you would want to:
 - Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html)).
 - Generate a new self-signed authentication certificate for the Logstash input plugins (see [Notes on certificates](#certificates)) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
 
-The [sebp/elkx](https://hub.docker.com/r/sebp/elkx/) image, which extends the ELK image with X-Pack, may be a useful starting point to improve the security of the ELK services.
+X-Pack, which is now bundled with the other ELK services, may be a useful to implement enterprise-grade security to the ELK stack.
+
+Alternatively, to implement authentication in a simple way, a reverse proxy (e.g. as provided by [nginx](https://www.nginx.com/) or [Caddy](https://caddyserver.com/)) could be used in front of the ELK services. 
 
 If on the other hand you want to disable certificate-based server authentication (e.g. in a demo environment), see [Disabling SSL/TLS](#disabling-ssl-tls).
 
@@ -692,13 +698,15 @@ If the container stops and its logs include the message `max virtual memory area
 
 ### Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory` <a name="es-not-starting-not-enough-memory"></a>
 
-If Elasticsearch's logs are *not* dumped (i.e. you get the following message: `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`), then Elasticsearch did not have enough memory to start, see [Prerequisites](#prerequisites). 
+If Elasticsearch's logs are *not* dumped (i.e. you get the following message: `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`), then Elasticsearch did not have enough memory to start, see [Prerequisites](#prerequisites).
 
 ### Elasticsearch is not starting (3): bootstrap tests <a name="es-not-starting-bootstrap-tests"></a>
 
 **As from version 5**, if Elasticsearch is no longer starting, i.e. the `waiting for Elasticsearch to be up (xx/30)` counter goes up to 30 and the container exits with `Couln't start Elasticsearch. Exiting.` _and_ Elasticsearch's logs are dumped, then read the recommendations in the logs and consider that they *must* be applied.
 
 In particular, in case (1) above, the message `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]` means that the host's limits on mmap counts **must** be set to at least 262144.
+
+Another example is `max file descriptors [4096] for elasticsearch process is too low, increase to at least [65536]`. In this case, the host's limits on open files (as displayed by `ulimit -n`) must be increased (see [File Descriptors](https://www.elastic.co/guide/en/elasticsearch/reference/current/file-descriptors.html) in Elasticsearch documentation); and Docker's `ulimit` settings must be adjusted, either for the container (using [`docker run`'s `--ulimit` option](https://docs.docker.com/engine/reference/commandline/run/#set-ulimits-in-container---ulimit) or [Docker Compose's `ulimits` configuration option](https://docs.docker.com/compose/compose-file/#ulimits)) or globally (e.g. in `/etc/sysconfig/docker`, add `OPTIONS="--default-ulimit nofile=1024:65536"`). 
 
 ### Elasticsearch is suddenly stopping after having started properly <a name="es-suddenly-stopping"></a>
 
