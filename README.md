@@ -58,6 +58,8 @@ The following tags are available:
 
 - `600`: ELK 6.0.0.
 
+- `5615`: ELK 5.6.15.
+
 - `5613`: ELK 5.6.13.
 
 - `5610`: ELK 5.6.10.
