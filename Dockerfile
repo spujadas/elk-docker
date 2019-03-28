@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana 6.7.0
+# Elasticsearch, Logstash, Kibana 7.0.0-rc1
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -39,13 +39,13 @@ RUN set -x \
  && set +x
 
 
-ENV ELK_VERSION 6.7.0
+ENV ELK_VERSION 7.0.0-rc1
 
 ### install Elasticsearch
 
 ENV ES_VERSION ${ELK_VERSION}
 ENV ES_HOME /opt/elasticsearch
-ENV ES_PACKAGE elasticsearch-${ES_VERSION}.tar.gz
+ENV ES_PACKAGE elasticsearch-${ES_VERSION}-linux-x86_64.tar.gz
 ENV ES_GID 991
 ENV ES_UID 991
 ENV ES_PATH_CONF /etc/elasticsearch
