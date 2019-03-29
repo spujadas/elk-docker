@@ -20,7 +20,7 @@
 #
 # Use a descriptive name for the node:
 #
-#node.name: node-1
+node.name: elk
 #
 # Add custom attributes to the node:
 #
@@ -70,11 +70,11 @@ network.host: 0.0.0.0
 # Pass an initial list of hosts to perform discovery when this node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-discovery.seed_hosts: ["127.0.0.1", "[::1]"]
+#discovery.seed_hosts: ["127.0.0.1", "[::1]"]
 #
 # Bootstrap the cluster using an initial set of master-eligible nodes:
 #
-cluster.initial_master_nodes: ["localhost"]
+cluster.initial_master_nodes: ["elk"]
 #
 # For more information, consult the discovery and cluster formation module documentation.
 #
