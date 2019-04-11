@@ -41,7 +41,7 @@ RUN set -x \
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
 
 
-ENV ELK_VERSION 6.7.0
+ENV ELK_VERSION 7.0.0
 
 ### install Elasticsearch
 
