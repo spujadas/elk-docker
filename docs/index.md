@@ -290,6 +290,10 @@ This can for instance be used to add index templates to Elasticsearch or to add 
 
 Forwarding logs from a host relies on a forwarding agent that collects logs (e.g. from log files, from the syslog daemon) and sends them to our instance of Logstash.
 
+As configured in this image, Logstash expects logs from a [Beats](https://www.elastic.co/products/beats) shipper (e.g. Filebeat) over a secure (SSL/TLS) connection.
+
+**Note** – See [this comment](https://github.com/spujadas/elk-docker/issues/264#issuecomment-481191669) for guidance on how to set up a vanilla HTTP listener.
+
 ### Forwarding logs with Filebeat <a name="forwarding-logs-filebeat"></a>
 
 Install [Filebeat](https://www.elastic.co/products/beats/filebeat) on the host you want to collect and forward logs from (see the *[References](#references)* section for links to detailed instructions).
