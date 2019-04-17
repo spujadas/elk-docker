@@ -9,7 +9,7 @@ output:
       - /etc/pki/tls/certs/logstash-beats.crt
 
 filebeat:
-  prospectors:
+  inputs:
     -
       paths:
         - /var/log/syslog
