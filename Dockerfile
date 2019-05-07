@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana 7.0.0
+# Elasticsearch, Logstash, Kibana 7.0.1
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -40,7 +40,7 @@ RUN set -x \
 
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
 
-ENV ELK_VERSION 7.0.0
+ENV ELK_VERSION 7.0.1
 
 
 ### install Elasticsearch
