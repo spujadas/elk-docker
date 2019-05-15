@@ -137,7 +137,7 @@ else
     echo "Waiting for Elasticsearch cluster to respond ($counter/30)"
   done
   if [ -z "$CLUSTER_NAME" ]; then
-    echo "Couln't get name of cluster. Exiting."
+    echo "Couldn't get name of cluster. Exiting."
     echo "Elasticsearch log follows below."
     cat /var/log/elasticsearch/elasticsearch.log
     exit 1
