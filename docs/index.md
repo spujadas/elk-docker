@@ -311,13 +311,13 @@ Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, t
 	    enabled: true
 	    hosts:
 	      - elk:5044
-	    ssl:
-		  certificate_authorities:
-      	    - /etc/pki/tls/certs/logstash-beats.crt
 	    timeout: 15
+	    ssl:
+	      certificate_authorities:
+      	      - /etc/pki/tls/certs/logstash-beats.crt
 	
 	filebeat:
-	  prospectors:
+	  inputs:
 	    -
 	      paths:
 	        - /var/log/syslog
