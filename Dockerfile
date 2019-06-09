@@ -7,7 +7,7 @@
 # Run with:
 # docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
 
-FROM phusion/baseimage:0.11
+FROM arm32v7/ubuntu
 MAINTAINER Sebastien Pujadas http://pujadas.net
 ENV \
  REFRESHED_AT=2017-02-28
@@ -21,7 +21,7 @@ ENV \
 
 RUN set -x \
  && apt update -qq \
- && apt install -qqy --no-install-recommends ca-certificates curl gosu tzdata openjdk-8-jdk \
+ && apt install -qqy --no-install-recommends ca-certificates curl gosu tzdata openjdk-8-jdk cron libjna-java \
  && apt clean \
  && rm -rf /var/lib/apt/lists/* \
  && gosu nobody true \
@@ -37,17 +37,16 @@ ENV \
 
 # note you can't define an env var that references another one in the same block (docker layer)
 ENV \
- JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre \
+ JAVA_HOME=/usr/lib/jvm/java-8-openjdk-armhf/jre \
  ES_PACKAGE=elasticsearch-${ES_VERSION}-linux-x86_64.tar.gz \
  ES_GID=991 \
  ES_UID=991 \
  ES_PATH_CONF=/etc/elasticsearch \
  ES_PATH_BACKUP=/var/backups \
  KIBANA_VERSION=${ELK_VERSION}
-
 RUN echo "${ELK_VERSION} ${ES_VERSION} https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} to ${ES_HOME}"
 RUN DEBIAN_FRONTEND=noninteractive \
- && mkdir ${ES_HOME} \
+ && mkdir -p ${ES_HOME}/tmp \
  && curl -O https://artifacts.elastic.co/downloads/elasticsearch/${ES_PACKAGE} \
  && tar xzf ${ES_PACKAGE} -C ${ES_HOME} --strip-components=1 \
  && rm -f ${ES_PACKAGE} \
@@ -122,7 +121,6 @@ RUN sed -i -e 's#^KIBANA_HOME=$#KIBANA_HOME='$KIBANA_HOME'#' /etc/init.d/kibana 
 ###############################################################################
 
 ### configure Elasticsearch
-
 ADD ./elasticsearch.yml ${ES_PATH_CONF}/elasticsearch.yml
 ADD ./elasticsearch-default /etc/default/elasticsearch
 RUN cp ${ES_HOME}/config/log4j2.properties ${ES_HOME}/config/jvm.options \
@@ -167,6 +165,17 @@ RUN chmod 644 /etc/logrotate.d/elasticsearch \
 ### configure Kibana
 
 ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
+
+### ARM workaround
+RUN cp /usr/lib/arm-linux-gnueabihf/jni/libjnidispatch.system.so /usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm
+RUN mkdir -p /opt/elasticsearch/lib/tmp
+RUN cp /opt/elasticsearch/lib/jna-4.5.1.jar /opt/elasticsearch/lib/tmp/jna-4.5.1.jar
+RUN cd /opt/elasticsearch/lib/tmp && jar xf jna-4.5.1.jar
+RUN cd /opt/elasticsearch/lib/tmp && rm -f jna-4.5.1.jar
+RUN mkdir -p /opt/elasticsearch/lib/tmp/com/sun/jna/linux-arm
+RUN cp /usr/lib/arm-linux-gnueabihf/jni/libjnidispatch.system.so /opt/elasticsearch/lib/tmp/com/sun/jna/linux-arm/libjnidispatch.so
+RUN cd /opt/elasticsearch/lib/tmp && jar cf ../jna-4.5.1.jar *
+RUN rm -rf /opt/elasticsearch/lib/tmp
 
 
 ###############################################################################

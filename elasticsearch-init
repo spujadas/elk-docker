@@ -40,7 +40,7 @@ ES_GROUP=elasticsearch
 ES_HOME=
 
 # Directory containing JRE
-JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-armhf/jre
 
 # Additional Java OPTS
 #ES_JAVA_OPTS=
