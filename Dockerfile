@@ -21,7 +21,7 @@ ENV \
 
 RUN set -x \
  && apt update -qq \
- && apt install -qqy --no-install-recommends ca-certificates curl gosu tzdata openjdk-8-jdk cron libjna-java \
+ && apt install -qqy --no-install-recommends ca-certificates curl gosu tzdata openjdk-8-jdk cron libjna-java vim wget \
  && apt clean \
  && rm -rf /var/lib/apt/lists/* \
  && gosu nobody true \
@@ -167,7 +167,7 @@ RUN chmod 644 /etc/logrotate.d/elasticsearch \
 ADD ./kibana.yml ${KIBANA_HOME}/config/kibana.yml
 
 ### ARM workaround
-RUN cp /usr/lib/arm-linux-gnueabihf/jni/libjnidispatch.system.so /usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm
+#### jna things
 RUN mkdir -p /opt/elasticsearch/lib/tmp
 RUN cp /opt/elasticsearch/lib/jna-4.5.1.jar /opt/elasticsearch/lib/tmp/jna-4.5.1.jar
 RUN cd /opt/elasticsearch/lib/tmp && jar xf jna-4.5.1.jar
@@ -176,6 +176,10 @@ RUN mkdir -p /opt/elasticsearch/lib/tmp/com/sun/jna/linux-arm
 RUN cp /usr/lib/arm-linux-gnueabihf/jni/libjnidispatch.system.so /opt/elasticsearch/lib/tmp/com/sun/jna/linux-arm/libjnidispatch.so
 RUN cd /opt/elasticsearch/lib/tmp && jar cf ../jna-4.5.1.jar *
 RUN rm -rf /opt/elasticsearch/lib/tmp
+#### NodeJS for Kibana
+RUN cd /root && curl -O https://nodejs.org/dist/v10.15.2/node-v10.15.2-linux-armv6l.tar.gz && tar -xvf node-v10.15.2-linux-armv6l.tar.gz
+ADD ./kibana.sh /opt/kibana/bin/kibana
+RUN chmod a+x /opt/kibana/bin/kibana
 
 
 ###############################################################################
