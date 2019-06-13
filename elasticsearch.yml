@@ -74,7 +74,8 @@ network.host: 0.0.0.0
 #
 # Bootstrap the cluster using an initial set of master-eligible nodes:
 #
-cluster.initial_master_nodes: ["elk"]
+#cluster.initial_master_nodes: ["elk"]
+discovery.type: single-node
 #
 # For more information, consult the discovery and cluster formation module documentation.
 #
