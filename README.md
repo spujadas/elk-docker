@@ -14,7 +14,9 @@ This image is hosted on Docker Hub at [https://hub.docker.com/r/sebp/elk/](https
 
 The following tags are available:
 
-- `latest`, `701`: ELK 7.0.1.
+- `latest`, `711`: ELK 7.1.1.
+
+- `701`: ELK 7.0.1.
 
 - `700` (ELK version 7.0.0).
 
