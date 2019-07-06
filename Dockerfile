@@ -141,10 +141,7 @@ ADD ./logstash-beats.key /etc/pki/tls/private/logstash-beats.key
 ADD pipelines.yml ${LOGSTASH_PATH_SETTINGS}/pipelines.yml
 
 # filters
-ADD ./02-beats-input.conf ${LOGSTASH_PATH_CONF}/conf.d/02-beats-input.conf
-ADD ./10-syslog.conf ${LOGSTASH_PATH_CONF}/conf.d/10-syslog.conf
-ADD ./11-nginx.conf ${LOGSTASH_PATH_CONF}/conf.d/11-nginx.conf
-ADD ./30-output.conf ${LOGSTASH_PATH_CONF}/conf.d/30-output.conf
+ADD ./logstash-conf/*.conf ${LOGSTASH_PATH_CONF}/conf.d/
 
 # patterns
 ADD ./nginx.pattern ${LOGSTASH_HOME}/patterns/nginx
