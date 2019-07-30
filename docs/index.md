@@ -775,10 +775,9 @@ If the suggestions listed in [Frequently encountered issues](#frequent-issues) d
 
 - Start Elasticsearch manually to look at what it outputs:
 	 
-		$ gosu elasticsearch /opt/elasticsearch/bin/elasticsearch \
-			-Edefault.path.logs=/var/log/elasticsearch \
-			-Edefault.path.data=/var/lib/elasticsearch \
-			-Edefault.path.conf=/etc/elasticsearch 
+		$ ES_PATH_CONF=/etc/elasticsearch gosu elasticsearch /opt/elasticsearch/bin/elasticsearch \
+			-Epath.logs=/var/log/elasticsearch
+			-Epath.data=/var/lib/elasticsearch
 
 ### If your log-emitting client doesn't seem to be able to reach Logstash... <a name="logstash-unreachable"></a>
 
