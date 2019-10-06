@@ -1,7 +1,7 @@
 require "docker"
 require "serverspec"
 
-ELK_VERSION = "7.3.2"
+ELK_VERSION = "7.4.0"
 ELASTICSEARCH_VERSION = ELK_VERSION
 LOGSTASH_VERSION = ELK_VERSION
 KIBANA_VERSION = ELK_VERSION
@@ -19,7 +19,7 @@ describe "Dockerfile" do
   ## Check OS and version
 
   it "installs the right version of Ubuntu" do
-    expect(os_version).to include("Ubuntu 16")
+    expect(os_version).to include("Ubuntu 18")
   end
 
   def os_version
@@ -66,6 +66,6 @@ describe "Dockerfile" do
   end
 
   def kibana_version
-    command("/opt/kibana/bin/kibana --version").stdout
+    command("/opt/kibana/bin/kibana --allow-root --version").stdout
   end
 end
