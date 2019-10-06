@@ -69,4 +69,4 @@ COPY html /usr/share/nginx/html
 
 ADD ./start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
-CMD [ "/usr/local/bin/star/t.sh" ]
+CMD [ "/usr/local/bin/start.sh" ]
