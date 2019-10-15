@@ -12,7 +12,7 @@ See the [ELK Docker image documentation web page](http://elk-docker.readthedocs.
 
 This image is hosted on Docker Hub at [https://hub.docker.com/r/sebp/elk/](https://hub.docker.com/r/sebp/elk/).
 
-The following tags are available:
+The following tags are available up to version 6:
 
 - `latest`, `682`: ELK 6.8.2.
 
