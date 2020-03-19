@@ -175,7 +175,7 @@ Wait for Logstash to start (as indicated by the message `The stdin plugin is now
 
 **Note** – You can create as many entries as you want. Use `^C` to go back to the bash prompt.
 
-If you browse to `http://<your-host>:9200/_search?pretty` (e.g. [http://localhost:9200/_search?pretty](http://localhost:9200/_search?pretty) for a local native instance of Docker) you'll see that Elasticsearch has indexed the entry:
+If you browse to `http://<your-host>:9200/_search?pretty&size=1000` (e.g. [http://localhost:9200/_search?pretty&size=1000](http://localhost:9200/_search?pretty&size=1000) for a local native instance of Docker) you'll see that Elasticsearch has indexed the entry:
 
 	{
 	  ...
