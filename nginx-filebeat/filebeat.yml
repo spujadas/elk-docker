@@ -18,4 +18,6 @@ filebeat:
     -
       paths:
         - "/var/log/nginx/*.log"
-      document_type: nginx-access
+      fields_under_root: true
+      fields:
+        type: nginx-access
