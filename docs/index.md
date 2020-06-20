@@ -825,6 +825,15 @@ Bearing in mind that the first thing I'll need to do is reproduce your issue, pl
 
 Here is the list of breaking changes that may have side effects when upgrading to later versions of the ELK image: 
 
+- **Java 11**
+
+	*Applies to tags: `780` and later.*
+
+	Since tag `es234_l234_k452`, this image used Java 8.
+
+	As Java 8 will no longer be supported by the ELK stack, as of tag `780`, Elasticsearch uses the version of OpenJDK that it is bundled with (OpenJDK 11), and Logstash uses a separately installed OpenJDK 11 package. This may have unintended side effects on plugins that rely on Java.
+
+
 - **`path.repo`**
 
 	*Applies to tags: after `623`.*
