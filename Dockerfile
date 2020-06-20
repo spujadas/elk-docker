@@ -7,10 +7,10 @@
 # Run with:
 # docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
 
-FROM phusion/baseimage:0.11
+FROM phusion/baseimage:18.04-1.0.0
 MAINTAINER Sebastien Pujadas http://pujadas.net
 ENV \
- REFRESHED_AT=2017-02-28
+ REFRESHED_AT=2020-06-20
 
 
 ###############################################################################
