@@ -109,11 +109,16 @@ This command publishes the following ports, which are needed for proper operatio
 - 9200 (Elasticsearch JSON interface).
 - 5044 (Logstash Beats interface, receives logs from Beats such as Filebeat – see the *[Forwarding logs with Filebeat](#forwarding-logs-filebeat)* section).
 
-**Note** – The image also exposes Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it. This transport interface is notably used by [Elasticsearch's Java client API](https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/index.html), and to run Elasticsearch in a cluster.
+The image exposes (but does not publish):
+
+- Elasticsearch's transport interface on port 9300. Use the `-p 9300:9300` option with the `docker` command above to publish it. This transport interface is notably used by [Elasticsearch's Java client API](https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/index.html), and to run Elasticsearch in a cluster.
+
+- [Logstash's monitoring API](https://www.elastic.co/guide/en/logstash/current/monitoring-logstash.html) on port 9600. Use the `-p 9600:9600` option with the `docker` command above to publish it.
+
 
 The figure below shows how the pieces fit together.
 
-![](http://i.imgur.com/Og5eps4.png)
+![](https://user-images.githubusercontent.com/930566/85201704-cc2c0e80-b301-11ea-8d59-aeda442a034d.png)
 
 Access Kibana's web interface by browsing to `http://<your-host>:5601`, where `<your-host>` is the hostname or IP address of the host Docker is running on (see note), e.g. `localhost` if running a local native version of Docker, or the IP address of the virtual machine if running a VM-hosted version of Docker (see note).
 
