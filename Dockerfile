@@ -8,7 +8,7 @@
 # docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
 
 # replace with master-arm64 for ARM64
-ARG IMAGE=baseimage:18.04-1.0.0 
+ARG IMAGE=18.04-1.0.0
 
 FROM phusion/baseimage:${IMAGE}
 MAINTAINER Sebastien Pujadas http://pujadas.net
