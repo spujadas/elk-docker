@@ -7,7 +7,10 @@
 # Run with:
 # docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
 
-FROM phusion/baseimage:18.04-1.0.0
+# replace with master-arm64 for ARM64
+ARG IMAGE=baseimage:18.04-1.0.0 
+
+FROM phusion/baseimage:${IMAGE}
 MAINTAINER Sebastien Pujadas http://pujadas.net
 ENV \
  REFRESHED_AT=2020-06-20
@@ -27,10 +30,11 @@ RUN set -x \
  && gosu nobody true \
  && set +x
 
-
 ### set current package version
 
 ARG ELK_VERSION=oss-7.9.1
+# replace with aarch64 for ARM64 systems
+ARG ARCH=x86_64 
 
 
 ### install Elasticsearch
@@ -41,7 +45,7 @@ ENV \
  ES_HOME=/opt/elasticsearch
 
 ENV \
- ES_PACKAGE=elasticsearch-${ES_VERSION}-linux-x86_64.tar.gz \
+ ES_PACKAGE=elasticsearch-${ES_VERSION}-linux-${ARCH}.tar.gz \
  ES_GID=991 \
  ES_UID=991 \
  ES_PATH_CONF=/etc/elasticsearch \
@@ -86,7 +90,7 @@ RUN mkdir ${LOGSTASH_HOME} \
 
 ENV \
  KIBANA_HOME=/opt/kibana \
- KIBANA_PACKAGE=kibana-${KIBANA_VERSION}-linux-x86_64.tar.gz \
+ KIBANA_PACKAGE=kibana-${KIBANA_VERSION}-linux-${ARCH}.tar.gz \
  KIBANA_GID=993 \
  KIBANA_UID=993
 
