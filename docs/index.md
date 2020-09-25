@@ -18,6 +18,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Forwarding logs with Filebeat](#forwarding-logs-filebeat)
 	- [Connecting a Docker container to an ELK container running on the same host](#connecting-containers)
 - [Building the image](#building-image)
+	- [Building the image for ARM64](#building-image-arm64)
 - [Tweaking the image](#tweaking-image)
 	- [Updating Logstash's configuration](#updating-logstash-configuration)
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
@@ -413,6 +414,14 @@ To build the Docker image from the source files, first clone the [Git repository
 - If you're using the vanilla `docker` command then run `sudo docker build -t <repository-name> .`, where `<repository-name>` is the repository name to be applied to the image, which you can then use to run the image with the `docker run` command.
 
 - If you're using Compose then run `sudo docker-compose build elk`, which uses the `docker-compose.yml` file from the source repository to build the image. You can then run the built image with `sudo docker-compose up`.
+
+### Building the image for ARM64 <a name="building-image-arm64"></a>
+
+To build the image for ARM64 (e.g. Raspberry Pi), run the following command:
+
+	$ sudo docker build --build-arg IMAGE=master-arm64 --build-arg ARCH=aarch64 .
+
+**Note** – The OSS version of the image cannot be built for ARM64.  
 
 ## Tweaking the image <a name="tweaking-image"></a>
 
