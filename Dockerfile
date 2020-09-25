@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana OSS 7.9.1
+# Elasticsearch, Logstash, Kibana 7.9.2
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -30,9 +30,11 @@ RUN set -x \
  && gosu nobody true \
  && set +x
 
+
 ### set current package version
 
-ARG ELK_VERSION=oss-7.9.1
+ARG ELK_VERSION=7.9.2
+
 # replace with aarch64 for ARM64 systems
 ARG ARCH=x86_64 
 
@@ -114,11 +116,13 @@ ADD ./elasticsearch-init /etc/init.d/elasticsearch
 RUN sed -i -e 's#^ES_HOME=$#ES_HOME='$ES_HOME'#' /etc/init.d/elasticsearch \
  && chmod +x /etc/init.d/elasticsearch
 
+
 ### Logstash
 
 ADD ./logstash-init /etc/init.d/logstash
 RUN sed -i -e 's#^LS_HOME=$#LS_HOME='$LOGSTASH_HOME'#' /etc/init.d/logstash \
  && chmod +x /etc/init.d/logstash
+
 
 ### Kibana
 
@@ -140,6 +144,7 @@ RUN cp ${ES_HOME}/config/log4j2.properties ${ES_HOME}/config/jvm.options \
  && chown -R elasticsearch:elasticsearch ${ES_PATH_CONF} \
  && chmod -R +r ${ES_PATH_CONF}
 
+
 ### configure Logstash
 
 # certs/keys for Beats and Lumberjack input
@@ -160,6 +165,7 @@ RUN chown -R logstash:logstash ${LOGSTASH_HOME}/patterns
 # Fix permissions
 RUN chmod -R +r ${LOGSTASH_PATH_CONF} ${LOGSTASH_PATH_SETTINGS} \
  && chown -R logstash:logstash ${LOGSTASH_PATH_SETTINGS}
+
 
 ### configure logrotate
 
