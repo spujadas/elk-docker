@@ -50,12 +50,6 @@ The following tags are available:
 
 **Note** – See the documentation page for more information on pulling specific combinations of versions of Elasticsearch, Logstash and Kibana.
 
-### ARM64 version
-
-Please use docker build as follows:
-
-`docker build --build-arg IMAGE=master-arm64 --build-arg ARCH=aarch64 .`
-
 ### About
 
 Written by [Sébastien Pujadas](https://pujadas.net), released under the [Apache 2 license](https://www.apache.org/licenses/LICENSE-2.0).
