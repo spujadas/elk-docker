@@ -1,5 +1,5 @@
 # Dockerfile to illustrate how Filebeat can be used with nginx
-# Filebeat 7.9.2
+# Filebeat OSS 7.9.2
 
 # Build with:
 # docker build -t filebeat-nginx-example .
@@ -10,7 +10,7 @@
 
 FROM nginx
 MAINTAINER Sebastien Pujadas http://pujadas.net
-ENV REFRESHED_AT 2016-11-04
+ENV REFRESHED_AT 2020-10-02
 
 
 ###############################################################################
@@ -19,7 +19,8 @@ ENV REFRESHED_AT 2016-11-04
 
 ### install Filebeat
 
-ENV FILEBEAT_VERSION 7.9.2
+ENV FILEBEAT_VERSION oss-7.9.2
+ENV FILEBEAT_BASE_VERSION 7.9.2
 
 
 RUN apt-get update -qq \
@@ -52,7 +53,7 @@ RUN mkdir -p /etc/pki/tls/certs
 ADD logstash-beats.crt /etc/pki/tls/certs/logstash-beats.crt
 
 # create template based on filebeat version (assumption: it is the same version as elasticsearch version)
-RUN filebeat export template --es.version ${FILEBEAT_VERSION} > /etc/filebeat/filebeat.template.json
+RUN filebeat export template --es.version ${FILEBEAT_BASE_VERSION} > /etc/filebeat/filebeat.template.json
 
 ###############################################################################
 #                                    DATA
