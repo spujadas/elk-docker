@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana 7.11.0
+# Elasticsearch, Logstash, Kibana OSS 7.11.0
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -33,7 +33,10 @@ RUN set -x \
 
 ### set current package version
 
-ARG ELK_VERSION=7.11.0
+ARG ELK_VERSION=oss-7.11.0
+
+# base version (i.e. remove OSS prefix) for Elasticsearch and Kibana (no OSS version since 7.11.0)
+ARG ELK_BASE_VERSION=7.11.0
 
 # replace with aarch64 for ARM64 systems
 ARG ARCH=x86_64 
@@ -43,7 +46,7 @@ ARG ARCH=x86_64
 
 # predefine env vars, as you can't define an env var that references another one in the same block
 ENV \
- ES_VERSION=${ELK_VERSION} \
+ ES_VERSION=${ELK_BASE_VERSION} \
  ES_HOME=/opt/elasticsearch
 
 ENV \
@@ -90,7 +93,7 @@ RUN mkdir ${LOGSTASH_HOME} \
 ### install Kibana
 
 ENV \
- KIBANA_VERSION=${ELK_VERSION} \
+ KIBANA_VERSION=${ELK_BASE_VERSION} \
  KIBANA_HOME=/opt/kibana
 
 ENV \
