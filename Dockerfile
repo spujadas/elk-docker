@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana OSS 7.10.2
+# Elasticsearch, Logstash, Kibana 7.11.0
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -33,7 +33,7 @@ RUN set -x \
 
 ### set current package version
 
-ARG ELK_VERSION=oss-7.10.2
+ARG ELK_VERSION=7.11.0
 
 # replace with aarch64 for ARM64 systems
 ARG ARCH=x86_64 
