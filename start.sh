@@ -18,6 +18,10 @@ _term() {
   service elasticsearch stop
   service logstash stop
   service kibana stop
+  
+  # kill script PGID so all the child processes are killed, to avoid zombies
+  trap - SIGTERM SIGINT
+  kill -TERM -- -$$ 2>/dev/null
   exit 0
 }
 
