@@ -2,8 +2,6 @@
 #
 # /usr/local/bin/start.sh
 # Start Elasticsearch, Logstash and Kibana services
-#
-# spujadas 2015-10-09; added initial pidfile removal and graceful termination
 
 # WARNING - This script assumes that the ELK services are not running, and is
 #   only expected to be run once, when the container is started.
@@ -15,12 +13,17 @@
 
 _term() {
   echo "Terminating ELK"
-  service elasticsearch stop
-  service logstash stop
-  service kibana stop
-  
-  # kill script PGID so all the child processes are killed, to avoid zombies
+
+  # shut down services
+  timeout 60 service elasticsearch stop &
+  timeout 60 service logstash stop &
+  timeout 60 service kibana stop &
   trap - SIGTERM SIGINT
+
+  # wait for all services to stop
+  wait
+
+  # kill script PGID so all the child processes are killed, to avoid zombies
   kill -TERM -- -$$ 2>/dev/null
   exit 0
 }
