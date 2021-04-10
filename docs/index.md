@@ -37,6 +37,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
  	- [Elasticsearch is not starting (1): `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]`](#es-not-starting-max-map-count)
 	- [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
 	- [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
+	- [Elasticsearch is not starting (4): no errors in log](#es-not-starting-timeout)
 	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
 	- [Miscellaneous](#issues-misc)
 - [Known issues](#known-issues)
@@ -58,8 +59,7 @@ To run a container using this image, you will need the following:
 	Install [Docker](https://docker.com/), either using a native package (Linux) or wrapped in a virtual machine (Windows, OS X – e.g. using [Boot2Docker](http://boot2docker.io/) or [Vagrant](https://www.vagrantup.com/)).
 
 	**Note** – As the *sebp/elk* image is based on a Linux image, users of Docker for Windows will need to ensure that [Docker is using Linux containers](https://docs.docker.com/docker-for-windows/#switch-between-windows-and-linux-containers).
-	 
-
+	
 - **A minimum of 4GB RAM assigned to Docker**
 
 	Elasticsearch alone needs at least 2GB of RAM to run.
@@ -207,7 +207,7 @@ By default, when starting a container, all three of the ELK services (Elasticsea
 The following environment variables may be used to selectively start a subset of the services:
 
 - `ELASTICSEARCH_START`: if set and set to anything other than `1`, then Elasticsearch will not be started.
- 
+
 - `LOGSTASH_START`: if set and set to anything other than `1`, then Logstash will not be started.
 
 - `KIBANA_START`: if set and set to anything other than `1`, then Kibana will not be started.
@@ -238,7 +238,7 @@ The following environment variables can be used to override the defaults used to
 	Specifying a heap size – e.g. `2g` – will set both the min and max to the provided value. To set the min and max values separately, see the `ES_JAVA_OPTS` below. 
 
 - `ES_JAVA_OPTS`: additional Java options for Elasticsearch (default: `""`)
- 
+
 	For instance, to set the min and max heap size to 512MB and 2G, set this environment variable to `-Xms512m -Xmx2g`.
 
 - `ES_CONNECT_RETRY`: number of seconds to wait for Elasticsearch to be up before starting Logstash and/or Kibana (default: `30`) 
@@ -320,7 +320,7 @@ Here is a sample `/etc/filebeat/filebeat.yml` configuration file for Filebeat, t
 	    timeout: 15
 	    ssl:
 	      certificate_authorities:
-      	      - /etc/pki/tls/certs/logstash-beats.crt
+	  	      - /etc/pki/tls/certs/logstash-beats.crt
 	
 	filebeat:
 	  inputs:
@@ -399,7 +399,7 @@ With Compose here's what example entries for a (locally built log-generating) co
 	    - "80:80"
 	  links:
 	    - elk
-
+	
 	elk:
 	  image: sebp/elk
 	  ports:
@@ -472,10 +472,10 @@ Elasticsearch runs as the user `elasticsearch`. To avoid issues with permissions
 A `Dockerfile` like the following will extend the base image and install the [GeoIP processor plugin](https://www.elastic.co/guide/en/elasticsearch/plugins/master/ingest-geoip.html) (which adds information about the geographical location of IP addresses):
 
 	FROM sebp/elk
-
+	
 	ENV ES_HOME /opt/elasticsearch
 	WORKDIR ${ES_HOME}
-
+	
 	RUN yes | CONF_DIR=/etc/elasticsearch gosu elasticsearch bin/elasticsearch-plugin \
 		install -b ingest-geoip
 
@@ -490,7 +490,7 @@ Logstash runs as the user `logstash`. To avoid issues with permissions, it is th
 The following `Dockerfile` can be used to extend the base image and install the [RSS input plugin](https://www.elastic.co/guide/en/logstash/current/plugins-inputs-rss.html):
 
 	FROM sebp/elk
-
+	
 	WORKDIR ${LOGSTASH_HOME}
 	RUN gosu logstash bin/logstash-plugin install logstash-input-rss
 
@@ -728,6 +728,12 @@ In particular, in case (1) above, the message `max virtual memory areas vm.max_m
 
 Another example is `max file descriptors [4096] for elasticsearch process is too low, increase to at least [65536]`. In this case, the host's limits on open files (as displayed by `ulimit -n`) must be increased (see [File Descriptors](https://www.elastic.co/guide/en/elasticsearch/reference/current/file-descriptors.html) in Elasticsearch documentation); and Docker's `ulimit` settings must be adjusted, either for the container (using [`docker run`'s `--ulimit` option](https://docs.docker.com/engine/reference/commandline/run/#set-ulimits-in-container---ulimit) or [Docker Compose's `ulimits` configuration option](https://docs.docker.com/compose/compose-file/#ulimits)) or globally (e.g. in `/etc/sysconfig/docker`, add `OPTIONS="--default-ulimit nofile=1024:65536"`). 
 
+### Elasticsearch is not starting (4): no errors in log <a name="es-not-starting-timeout"></a>
+
+If Elasticsearch’s logs are dumped with no apparent error, then it may not have had enough time to start within the default window of 30 seconds.
+
+In that case, you should set the `ES_CONNECT_RETRY` environment variable (see [Overriding start-up variables](#overriding-variables)) to a larger value to give Elasticsearch enough time to start running.
+
 ### Elasticsearch is suddenly stopping after having started properly <a name="es-suddenly-stopping"></a>
 
 With the default image, this is usually due to Elasticsearch running out of memory after the other services are started, and the corresponding process being (silently) killed.
@@ -784,15 +790,15 @@ Here are a few pointers to help you troubleshoot your containerised ELK.
 ### If Elasticsearch isn't starting... <a name="es-not-starting"></a>
 
 If the suggestions listed in [Frequently encountered issues](#frequent-issues) don't help, then an additional way of working out why Elasticsearch isn't starting is to:
- 
+
 - Start a container with the `bash` command:
 	
 		$ sudo docker run -it docker_elk bash
 
 - Start Elasticsearch manually to look at what it outputs:
-	 
+	
 		$ ES_PATH_CONF=/etc/elasticsearch gosu elasticsearch /opt/elasticsearch/bin/elasticsearch \
-			-Epath.logs=/var/log/elasticsearch
+			-Epath.logs=/var/log/elasticsearch \
 			-Epath.data=/var/lib/elasticsearch
 
 ### If your log-emitting client doesn't seem to be able to reach Logstash... <a name="logstash-unreachable"></a>
@@ -810,7 +816,7 @@ Make sure that:
 - Your client is configured to connect to Logstash using TLS (or SSL) and that it trusts Logstash's self-signed certificate (or certificate authority if you replaced the default certificate with a proper certificate – see [Security considerations](#security-considerations)).
 
   	To check if Logstash is authenticating using the right certificate, check for errors in the output of
-
+		
 		$ openssl s_client -connect localhost:5044 -CAfile logstash-beats.crt
 
 	where `logstash-beats.crt` is the name of the file containing Logstash's self-signed certificate.
@@ -922,7 +928,7 @@ Here is the list of breaking changes that may have side effects when upgrading t
 	Users of images with tags `es231_l231_k450` and `es232_l232_k450` are strongly recommended to override Logstash's options to disable the auto-reload feature by setting the `LS_OPTS` environment variable to `--no-auto-reload` if this feature is not needed.
 
 	To enable auto-reload in later versions of the image:
- 
+
 	- From `es500_l500_k500` onwards: add the `--config.reload.automatic` command-line option to `LS_OPTS`.
 
 	- From `es234_l234_k452` to `es241_l240_k461`: add `--auto-reload` to `LS_OPTS`. 
