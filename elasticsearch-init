@@ -40,7 +40,7 @@ ES_GROUP=elasticsearch
 ES_HOME=
 
 # Directory containing Java
-JAVA_HOME=$ES_HOME/jdk
+ES_JAVA_HOME=$ES_HOME/jdk
 
 # Additional Java OPTS
 #ES_JAVA_OPTS=
