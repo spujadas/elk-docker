@@ -62,11 +62,11 @@ To run a container using this image, you will need the following:
 	
 - **A minimum of 4GB RAM assigned to Docker**
 
-  Elasticsearch alone needs at least 2GB of RAM to run.
+	Elasticsearch alone needs at least 2GB of RAM to run.
 
-  With Docker for Mac, the amount of RAM dedicated to Docker can be set using the UI: see [How to increase docker-machine memory Mac](http://stackoverflow.com/questions/32834082/how-to-increase-docker-machine-memory-mac/39720010#39720010) (Stack Overflow).
+	With Docker for Mac, the amount of RAM dedicated to Docker can be set using the UI: see [How to increase docker-machine memory Mac](http://stackoverflow.com/questions/32834082/how-to-increase-docker-machine-memory-mac/39720010#39720010) (Stack Overflow).
 
-  In Docker Desktop for Windows, [use the *Advanced* tab to adjust limits on resources available to Docker](https://docs.docker.com/docker-for-windows/#:~:text=Memory%3A%20By%20default%2C%20Docker%20Desktop,swap%20file%20size%20as%20needed).
+	In Docker Desktop for Windows, [use the *Advanced* tab to adjust limits on resources available to Docker](https://docs.docker.com/docker-for-windows/#:~:text=Memory%3A%20By%20default%2C%20Docker%20Desktop,swap%20file%20size%20as%20needed).
 
 - **A limit on mmap counts equal to 262,144 or more**
 
