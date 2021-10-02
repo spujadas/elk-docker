@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana 7.13.2
+# Elasticsearch, Logstash, Kibana 7.15.0
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -8,7 +8,7 @@
 # docker run -p 5601:5601 -p 9200:9200 -p 5044:5044 -it --name elk <repo-user>/elk
 
 # replace with master-arm64 for ARM64
-ARG IMAGE=18.04-1.0.0
+ARG IMAGE=focal-1.1.0
 
 FROM phusion/baseimage:${IMAGE}
 MAINTAINER Sebastien Pujadas http://pujadas.net
@@ -33,10 +33,10 @@ RUN set -x \
 
 ### set current package version
 
-ARG ELK_VERSION=7.13.2
+ARG ELK_VERSION=7.15.0
 
 # base version (i.e. remove OSS prefix) for Elasticsearch and Kibana (no OSS version since 7.11.0)
-ARG ELK_BASE_VERSION=7.13.2
+ARG ELK_BASE_VERSION=7.15.0
 
 # replace with aarch64 for ARM64 systems
 ARG ARCH=x86_64 
