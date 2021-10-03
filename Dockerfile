@@ -1,5 +1,5 @@
 # Dockerfile for ELK stack
-# Elasticsearch, Logstash, Kibana OSS 7.14.1
+# Elasticsearch, Logstash, Kibana 7.14.1
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -33,7 +33,7 @@ RUN set -x \
 
 ### set current package version
 
-ARG ELK_VERSION=oss-7.14.1
+ARG ELK_VERSION=7.14.1
 
 # base version (i.e. remove OSS prefix) for Elasticsearch and Kibana (no OSS version since 7.11.0)
 ARG ELK_BASE_VERSION=7.14.1
