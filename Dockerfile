@@ -33,10 +33,10 @@ RUN set -x \
 
 ### set current package version
 
-ARG ELK_VERSION=7.15.0
+ARG ELK_VERSION=7.15.2
 
 # base version (i.e. remove OSS prefix) for Elasticsearch and Kibana (no OSS version since 7.11.0)
-ARG ELK_BASE_VERSION=7.15.0
+ARG ELK_BASE_VERSION=7.15.2
 
 # replace with aarch64 for ARM64 systems
 ARG ARCH=x86_64 
