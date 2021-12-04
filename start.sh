@@ -73,17 +73,17 @@ else
   # update permissions of ES data directory
   chown -R elasticsearch:elasticsearch /var/lib/elasticsearch
 
-  # override ES_HEAP_SIZE variable if set
+  # override JVM heap size using custom JVM options file if ES_HEAP_SIZE variable is set
   if [ ! -z "$ES_HEAP_SIZE" ]; then
-    awk -v LINE="-Xmx$ES_HEAP_SIZE" '{ sub(/^.Xmx.*/, LINE); print; }' ${ES_PATH_CONF}/jvm.options \
-        > ${ES_PATH_CONF}/jvm.options.new && mv ${ES_PATH_CONF}/jvm.options.new ${ES_PATH_CONF}/jvm.options
-    awk -v LINE="-Xms$ES_HEAP_SIZE" '{ sub(/^.Xms.*/, LINE); print; }' ${ES_PATH_CONF}/jvm.options \
-        > ${ES_PATH_CONF}/jvm.options.new && mv ${ES_PATH_CONF}/jvm.options.new ${ES_PATH_CONF}/jvm.options
+    cat << EOF > ${ES_PATH_CONF}/jvm.options.d/heap_size.options
+-Xmx$ES_HEAP_SIZE
+-Xms$ES_HEAP_SIZE
+EOF
   fi
 
+  # disable JVM HeapDumpOnOutOfMemoryError if ES_HEAP_DISABLE variable is set
   if [ ! -z "$ES_HEAP_DISABLE" ]; then
-    awk -v LINE="#-XX:+HeapDumpOnOutOfMemoryError" '{ sub(/^-XX:\+HeapDumpOnOutOfMemoryError.*/, LINE); print; }' ${ES_PATH_CONF}/jvm.options \
-        > ${ES_PATH_CONF}/jvm.options.new && mv ${ES_PATH_CONF}/jvm.options.new ${ES_PATH_CONF}/jvm.options
+    echo "-XX:-HeapDumpOnOutOfMemoryError" > ${ES_PATH_CONF}/jvm.options.d/heap_dump.options
   fi
 
   # override ES_JAVA_OPTS variable if set
