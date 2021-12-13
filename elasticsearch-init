@@ -43,7 +43,7 @@ ES_HOME=
 ES_JAVA_HOME=$ES_HOME/jdk
 
 # Additional Java OPTS
-#ES_JAVA_OPTS=
+ES_JAVA_OPTS="-Dlog4j2.formatMsgNoLookups=true"
 
 # Maximum number of open files
 #MAX_OPEN_FILES=65536
