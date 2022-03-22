@@ -47,6 +47,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Additional tips](#general-troubleshooting)
 - [Reporting issues](#reporting-issues)
 - [Breaking changes](#breaking-changes)
+- [Release notes](#release-notes)
 - [References](#references)
 - [About](#about)
 
@@ -647,17 +648,15 @@ An even more optimal way to distribute Elasticsearch, Logstash and Kibana across
 
 As it stands this image is meant for local test use, and as such hasn't been secured: access to the ELK services is unrestricted, and default authentication server certificates and private keys for the Logstash input plugins are bundled with the image.
 
+**Note** – In fact, since version 8 of the image, security has been explicitly disabled, see the [Release notes](#release-notes) section.
+
 To harden this image, at the very least you would want to:
 
-- Restrict the access to the ELK services to authorised hosts/networks only, as described in e.g. [Elasticsearch Scripting and Security](https://www.elastic.co/blog/scripting-security/) and [Elastic Security: Deploying Logstash, ElasticSearch, Kibana "securely" on the Internet](http://blog.eslimasec.com/2014/05/elastic-security-deploying-logstash.html).
-- Password-protect the access to Kibana and Elasticsearch (see [SSL And Password Protection for Kibana](http://technosophos.com/2014/03/19/ssl-password-protection-for-kibana.html)).
+- Configure the services to run with security enabled, see [Start the Elastic Stack with security enabled](https://www.elastic.co/guide/en/elasticsearch/reference/8.0/configuring-stack-security.html) (Elasticsearch),  [Secure your connection to Elasticsearch](https://www.elastic.co/guide/en/logstash/8.0/ls-security.html) (Logstash), and [Configure security in Kibana](https://www.elastic.co/guide/en/kibana/8.0/using-kibana-with-security.html) (Kibana) for version 8 of the ELK services.
+
 - Generate a new self-signed authentication certificate for the Logstash input plugins (see [Notes on certificates](#certificates)) or (better) get a proper certificate from a commercial provider (known as a certificate authority), and keep the private key private.
 
-X-Pack, which is now bundled with the other ELK services, may be a useful to implement enterprise-grade security to the ELK stack.
-
-Alternatively, to implement authentication in a simple way, a reverse proxy (e.g. as provided by [nginx](https://www.nginx.com/) or [Caddy](https://caddyserver.com/)) could be used in front of the ELK services. 
-
-If on the other hand you want to disable certificate-based server authentication (e.g. in a demo environment), see [Disabling SSL/TLS](#disabling-ssl-tls).
+  If on the other hand you want to disable certificate-based server authentication (e.g. in a demo environment), see [Disabling SSL/TLS](#disabling-ssl-tls).
 
 ### Notes on certificates <a name="certificates"></a>
 
@@ -934,6 +933,20 @@ Here is the list of breaking changes that may have side effects when upgrading t
 	- From `es500_l500_k500` onwards: add the `--config.reload.automatic` command-line option to `LS_OPTS`.
 
 	- From `es234_l234_k452` to `es241_l240_k461`: add `--auto-reload` to `LS_OPTS`. 
+
+## Release notes <a name="release-notes"></a>
+
+The following information may be helpful when upgrading to later versions of the ELK image:
+
+- **Version 8.0**
+
+  Elasticsearch security is on by default since version 8.0 of the Elastic stack.
+
+  In the opinion of the Docker image’s author, setting up the Elastic stack with security enabled is somewhat fiddly. Security has therefore been disabled in this image to get everything up and running as smoothly as possible out of the box.
+  
+  See the [Security considerations](#security-considerations) section for information on setting up security.
+  
+  
 
 ## References <a name="references"></a>
 

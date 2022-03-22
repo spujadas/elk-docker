@@ -91,3 +91,9 @@ cluster.initial_master_nodes: ["elk"]
 # Require explicit names when deleting indices:
 #
 #action.destructive_requires_name: true
+#
+# ---------------------------------- Security ----------------------------------
+#
+# Enable/disable security (enabled by default since version 8.0)
+#
+xpack.security.enabled: false
