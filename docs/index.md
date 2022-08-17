@@ -40,7 +40,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Elasticsearch is not starting (4): no errors in log](#es-not-starting-timeout)
 	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
 	- [Miscellaneous](#issues-misc)
-- [Known issues](#known-issues)
+- [Assorted hints](#assorted-hints)
 - [Troubleshooting](#troubleshooting)
 	- [If Elasticsearch isn't starting...](#es-not-starting)
 	- [If your log-emitting client doesn't seem to be able to reach Logstash...](#logstash-unreachable)
@@ -750,37 +750,9 @@ Other known issues include:
 - Incorrect proxy settings, e.g. if a proxy is defined for Docker, ensure that connections to `localhost` are not proxied (e.g. by using a `no_proxy` setting).
 
 
-## Known issues <a name="known-issues"></a>
+## Assorted hints <a name="assorted-hints"></a>
 
-When using Filebeat, an [index template file](https://www.elastic.co/guide/en/beats/filebeat/6.0/filebeat-template.html) is used to connect to Elasticsearch to define settings and mappings that determine how fields should be analysed.
-
-In version 5, before starting Filebeat for the first time, you would run this command (replacing `elk` with the appropriate hostname) to load the default index template in Elasticsearch:
-
-		curl -XPUT 'http://elk:9200/_template/filebeat?pretty' -d@/etc/filebeat/filebeat.template.json
-
-In version 6 however, the `filebeat.template.json` template file has been replaced with a `fields.yml` file, which is used to load the index manually by running `filebeat setup --template` [as per the official Filebeat instructions](https://www.elastic.co/guide/en/beats/filebeat/6.0/filebeat-template.html#load-template-manually). Unfortunately, this doesn't currently work and results in the following message:
-
-    Exiting: Template loading requested but the Elasticsearch output is not configured/enabled
-
-Attempting to start Filebeat without setting up the template produces the following message:
-
-    Warning: Couldn't read data from file "/etc/filebeat/filebeat.template.json",
-    Warning: this makes an empty POST.
-    {
-      "error" : {
-        "root_cause" : [
-          {
-            "type" : "parse_exception",
-            "reason" : "request body is required"
-          }
-        ],
-        "type" : "parse_exception",
-        "reason" : "request body is required"
-      },
-      "status" : 400
-    }
-
-One can assume that in later releases of Filebeat the instructions will be clarified to specify how to manually load the index template into an specific instance of Elasticsearch, and that the warning message will vanish as no longer applicable in version 6.   
+A `docker-compose.yml` file that provides a quick and easy ELK deployment with Kibana proxied through traefik with basic authentication can be found at https://github.com/spujadas/elk-docker/issues/374.
 
 ## Troubleshooting <a name="troubleshooting"></a>
 
