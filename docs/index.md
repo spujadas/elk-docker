@@ -236,7 +236,7 @@ The following environment variables can be used to override the defaults used to
 
 - `TZ`: the container's time zone (see [list of valid time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)), e.g. `America/Los_Angeles` (default is `Etc/UTC`, i.e. UTC).
 
-- `ES_HEAP_SIZE`: Elasticsearch heap size (default is 256MB min, 1G max)
+- `ES_HEAP_SIZE`: Elasticsearch heap size (default is 50% of container memory, 31G max)
 
 	Specifying a heap size – e.g. `2g` – will set both the min and max to the provided value. To set the min and max values separately, see the `ES_JAVA_OPTS` below. 
 
