@@ -9,7 +9,6 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Pulling specific version combinations](#specific-version-combinations)
 - [Usage](#usage)
 	- [Running the container using Docker Compose](#running-with-docker-compose)
-	- [Running the container using Kitematic](#running-with-kitematic)
 	- [Creating a dummy log entry](#creating-dummy-log-entry)
 	- [Starting services selectively](#selective-services)
 	- [Overriding start-up variables](#overriding-variables)
@@ -21,6 +20,7 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Building the image for ARM64](#building-image-arm64)
 - [Tweaking the image](#tweaking-image)
 	- [Updating Logstash's configuration](#updating-logstash-configuration)
+	- [Updating Elasticsearch’s configuration](#updating-elasticsearch-configuration)
 	- [Installing Elasticsearch plugins](#installing-elasticsearch-plugins)
 	- [Installing Logstash plugins](#installing-logstash-plugins)
 	- [Installing Kibana plugins](#installing-kibana-plugins)
@@ -34,17 +34,18 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Notes on certificates](#certificates)
 	- [Disabling SSL/TLS](#disabling-ssl-tls)
 - [Frequently encountered issues](#frequent-issues)
- 	- [Elasticsearch is not starting (1): `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]`](#es-not-starting-max-map-count)
-	- [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
-	- [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
-	- [Elasticsearch is not starting (4): no errors in log](#es-not-starting-timeout)
-	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
-	- [Miscellaneous](#issues-misc)
+  - [Elasticsearch is not starting (1): `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]`](#es-not-starting-max-map-count)
+  - [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
+  - [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
+  - [Elasticsearch is not starting (4): no errors in log](#es-not-starting-timeout)
+  - [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
+  - [Miscellaneous](#issues-misc)
+
 - [Assorted hints](#assorted-hints)
 - [Troubleshooting](#troubleshooting)
-	- [If Elasticsearch isn't starting...](#es-not-starting)
-	- [If your log-emitting client doesn't seem to be able to reach Logstash...](#logstash-unreachable)
-	- [Additional tips](#general-troubleshooting)
+  - [If Elasticsearch isn't starting...](#es-not-starting)
+  - [If your log-emitting client doesn't seem to be able to reach Logstash...](#logstash-unreachable)
+  - [Additional tips](#general-troubleshooting)
 - [Reporting issues](#reporting-issues)
 - [Breaking changes](#breaking-changes)
 - [Release notes](#release-notes)
@@ -80,6 +81,10 @@ To run a container using this image, you will need the following:
 - **Access to TCP port 5044 from log-emitting clients**
 
 	Other ports may need to be explicitly opened: see [Usage](#usage) for the complete list of ports that are exposed.
+	
+- **Configuration of Elasticsearch to run on Apple M2**
+
+	Elasticsearch’s configuration file `elasticsearch.yml` needs to be updated with the following configuration item: `bootstrap.system_call_filter: false`. See [Updating Elasticsearch’s configuration](#updating-elasticsearch-configuration) for guidance.
 
 ## Installation <a name="installation"></a>
 
@@ -148,16 +153,6 @@ If you're using [Docker Compose](https://docs.docker.com/compose/) to manage you
 You can then start the ELK container like this:
 
 	$ sudo docker-compose up elk
-
-### Running the container using Kitematic <a name="running-with-kitematic"></a>
-
-Windows and OS X users may prefer to use a simple graphical user interface to run the container, as provided by [Kitematic](https://kitematic.com/), which is included in the [Docker Toolbox](https://www.docker.com/products/docker-toolbox).
-
-After starting Kitematic and creating a new container from the sebp/elk image, click on the *Settings* tab, and then on the *Ports* sub-tab to see the list of the ports exposed by the container (under *DOCKER PORT*) and the list of IP addresses and ports they are published on and accessible from on your machine (under *MAC IP:PORT*).
-
-You may for instance see that Kibana's web interface (which is exposed as port 5601 by the container) is published at an address like 192.168.99.100:32770, which you can now go to in your browser.
-
-**Note** – The rest of this document assumes that the exposed and published ports share the same number (e.g. will use `http://<your-host>:5601/` to refer to Kibana's web interface), so when using Kitematic you need to make sure that you replace both the hostname with the IP address *and* the exposed port with the published port listed by Kitematic (e.g. `http://192.168.99.100:32770` in the previous example).
 
 ### Creating a dummy log entry <a name="creating-dummy-log-entry"></a>
 
@@ -465,6 +460,16 @@ To create your own image with updated or additional configuration files, you can
 	ADD /path/to/new-12-some-filter.conf /etc/logstash/conf.d/12-some-filter.conf
 
 Then build the extended image using the `docker build` syntax. 
+
+### Updating Elasticsearch’s configuration <a name="updating-elasticsearch-configuration"></a>
+
+The directory layout for Elasticsearch is described [here](https://www.elastic.co/guide/en/elasticsearch/reference/current/settings.html)
+
+Elasticsearch’s configuration file is `elasticsearch.yml`, located in `/etc/elasticsearch`.
+
+The easiest way to modify this configuration file is to bind-mount a local configuration file to a configuration file within the container at runtime, as outlined in the introduction of the parent section.
+
+
 
 ### Installing Elasticsearch plugins <a name="installing-elasticsearch-plugins"></a>
 
