@@ -1,9 +1,5 @@
 # Dockerfile for ELK stack
-<<<<<<< HEAD
-# Elasticsearch, Logstash, Kibana 8.14.1
-=======
-# Elasticsearch, Logstash, Kibana OSS 8.14.2
->>>>>>> 7b5a7e1625b123c49d1a817cad15725b10f23144
+# Elasticsearch, Logstash, Kibana OSS 8.15.0
 
 # Build with:
 # docker build -t <repo-user>/elk .
@@ -37,17 +33,10 @@ RUN set -x \
 
 ### set current package version
 
-<<<<<<< HEAD
-ARG ELK_VERSION=8.14.1
+ARG ELK_VERSION=oss-8.15.0
 
 # base version (i.e. remove OSS prefix) for Elasticsearch and Kibana (no OSS version since 7.11.0)
-ARG ELK_BASE_VERSION=8.14.1
-=======
-ARG ELK_VERSION=oss-8.14.2
-
-# base version (i.e. remove OSS prefix) for Elasticsearch and Kibana (no OSS version since 7.11.0)
-ARG ELK_BASE_VERSION=8.14.2
->>>>>>> 7b5a7e1625b123c49d1a817cad15725b10f23144
+ARG ELK_BASE_VERSION=8.15.0
 
 # replace with aarch64 for ARM64 systems
 ARG ARCH=x86_64 
