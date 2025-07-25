@@ -1,0 +1,6 @@
+site_name: elk-docker
+theme:
+  name: mkdocs
+  highlightjs: true
+plugins:
+  - search
