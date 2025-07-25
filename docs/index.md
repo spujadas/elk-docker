@@ -170,8 +170,9 @@ Open a shell prompt in the container and type (replacing `<container-name>` with
 
 At the prompt, enter:
 
-	# /opt/logstash/bin/logstash --path.data /tmp/logstash/data \
-		-e 'input { stdin { } } output { elasticsearch { hosts => ["localhost"] } }'
+	# chown logstash:logstash /tmp/logstash/data
+	# gosu logstash /opt/logstash/bin/logstash --path.data /tmp/logstash/data \
+		-e 'input { stdin { } } output { elasticsearch { hosts => ["localhost"] index => "dummy_index"} }'
 
 Wait for Logstash to start (as indicated by the message `The stdin plugin is now waiting for input:`), then type some dummy text followed by Enter to create a log entry:
 
@@ -186,17 +187,21 @@ If you browse to `http://<your-host>:9200/_search?pretty&size=1000` (e.g. [http:
 	  "hits": {
 	    ...
 	    "hits": [ {
-	      "_index": "logstash-...",
-	      "_type": "logs",
+	      "_index" : "dummy_index",
 	      ...
-	      "_source": { "message": "this is a dummy entry", "@version": "1", "@timestamp": ... }
+	      "_source" : {
+	        "message" : "this is a dummy entry",
+	        "@version" : "1",
+	        "@timestamp" : "2025-07-25T15:45:40.145195885Z",
+	        "event" : {
+	          "original" : "this is a dummy entry"
+	        }
+	        ...
 	    } ]
 	  }
 	}
 
-You can now browse to Kibana's web interface at `http://<your-host>:5601` (e.g. [http://localhost:5601](http://localhost:5601) for a local native instance of Docker).
-
-Make sure that the drop-down "Time Filter field name" field is pre-populated with the value `@timestamp`, then click on "Create", and you're good to go.
+You can now browse to Kibana's web interface at `http://<your-host>:5601` (e.g. [http://localhost:5601](http://localhost:5601) for a local native instance of Docker), go to _Data > Index management_, click on _dummy_index_, then on _Discover Index_ to view the dummy log entries.
 
 ### Starting services selectively <a name="selective-services"></a>
 
