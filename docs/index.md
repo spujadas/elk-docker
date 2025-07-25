@@ -34,18 +34,18 @@ This web page documents how to use the [sebp/elk](https://hub.docker.com/r/sebp/
 	- [Notes on certificates](#certificates)
 	- [Disabling SSL/TLS](#disabling-ssl-tls)
 - [Frequently encountered issues](#frequent-issues)
-  - [Elasticsearch is not starting (1): `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]`](#es-not-starting-max-map-count)
-  - [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
-  - [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
-  - [Elasticsearch is not starting (4): no errors in log](#es-not-starting-timeout)
-  - [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
-  - [Miscellaneous](#issues-misc)
+	- [Elasticsearch is not starting (1): `max virtual memory areas vm.max_map_count [65530] likely too low, increase to at least [262144]`](#es-not-starting-max-map-count)
+	- [Elasticsearch is not starting (2): `cat: /var/log/elasticsearch/elasticsearch.log: No such file or directory`](#es-not-starting-not-enough-memory)
+	- [Elasticsearch is not starting (3): bootstrap tests](#es-not-starting-bootstrap-tests)
+	- [Elasticsearch is not starting (4): no errors in log](#es-not-starting-timeout)
+	- [Elasticsearch is suddenly stopping after having started properly](#es-suddenly-stopping)
+	- [Miscellaneous](#issues-misc)
 
 - [Assorted hints](#assorted-hints)
 - [Troubleshooting](#troubleshooting)
-  - [If Elasticsearch isn't starting...](#es-not-starting)
-  - [If your log-emitting client doesn't seem to be able to reach Logstash...](#logstash-unreachable)
-  - [Additional tips](#general-troubleshooting)
+	- [If Elasticsearch isn't starting...](#es-not-starting)
+	- [If your log-emitting client doesn't seem to be able to reach Logstash...](#logstash-unreachable)
+	- [Additional tips](#general-troubleshooting)
 - [Reporting issues](#reporting-issues)
 - [Breaking changes](#breaking-changes)
 - [Release notes](#release-notes)
@@ -346,8 +346,6 @@ You'll also need to copy the `logstash-beats.crt` file (which contains the certi
 **Note** – Alternatively, when using Filebeat on a Windows machine, instead of using the `certificate_authorities` configuration option, the certificate from `logstash-beats.crt` can be installed in Windows' Trusted Root Certificate Authorities store. 
 
 **Note** – The ELK image includes configuration items (`/etc/logstash/conf.d/11-nginx.conf` and `/opt/logstash/patterns/nginx`) to parse nginx access logs, as forwarded by the Filebeat instance above.
-
-If you're starting Filebeat for the first time, you should load the default index template in Elasticsearch. *At the time of writing, in version 6, loading the index template in Elasticsearch doesn't work, see [Known issues](#known-issues).*
 
 Start Filebeat:
 
