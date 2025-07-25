@@ -170,7 +170,7 @@ Open a shell prompt in the container and type (replacing `<container-name>` with
 
 At the prompt, enter:
 
-	# chown logstash:logstash /tmp/logstash/data
+	# mkdir -p /tmp/logstash/data && chown logstash:logstash /tmp/logstash/data
 	# gosu logstash /opt/logstash/bin/logstash --path.data /tmp/logstash/data \
 		-e 'input { stdin { } } output { elasticsearch { hosts => ["localhost"] index => "dummy_index"} }'
 
