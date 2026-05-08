@@ -35,7 +35,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
-            latest=true
+            latest=${{ !startsWith(github.ref_name, 'oss-') && !startsWith(github.ref_name, 'latest-') && startsWith(github.ref_name, '9.') }}
             prefix=
             suffix=
 
